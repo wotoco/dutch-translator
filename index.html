@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>NL In Gang - Study Portal</title>
+    <title>NL In Gang - Study Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,60 +12,93 @@
             .active-chapter { border-bottom: none; border-left: 4px solid #4f46e5; background: #f8fafc; }
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
+        .card-inner { transition: transform 0.4s; transform-style: preserve-3d; }
         .flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 1.5rem; text-align: center; padding: 20px; }
+        .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
         .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3 md:p-4">
-        <div class="max-w-7xl mx-auto flex flex-col gap-3">
-            <h1 class="text-lg font-bold italic text-slate-800">NL <span class="text-indigo-600 font-black text-xl">In Gang</span></h1>
-            <div class="w-full bg-slate-100 border rounded-xl p-1 flex items-center gap-2 shadow-inner">
-                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Translate & save..." class="bg-transparent border-none focus:ring-0 text-base md:text-lg w-full px-3 py-2 outline-none">
+    <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3">
+        <div class="max-w-6xl mx-auto flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+                <h1 class="font-bold italic text-slate-800">NL <span class="text-indigo-600 font-black text-xl italic">In Gang</span></h1>
+                <button onclick="clearSaved()" class="text-[10px] font-bold text-slate-300 hover:text-red-400 uppercase">Reset Dictionary</button>
+            </div>
+            
+            <div class="w-full bg-slate-100 border rounded-2xl p-1 flex items-center gap-2">
+                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Translate & Auto-Save..." 
+                       class="bg-transparent border-none focus:ring-0 text-base w-full px-3 py-2 outline-none">
                 <div id="targetText" class="w-full text-indigo-600 font-bold px-2 py-2 text-base truncate italic">...</div>
-                <button onclick="speakInput()" class="p-3 bg-white text-indigo-600 rounded-lg shadow-sm active:scale-90"><i class="fas fa-play text-sm"></i></button>
+                <button onclick="speakInput()" class="p-3 bg-white text-indigo-600 rounded-xl shadow-sm active:scale-90 transition">
+                    <i class="fas fa-play text-sm"></i>
+                </button>
             </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row">
-        <aside class="w-full md:w-64 bg-white border-b md:border-r overflow-x-auto no-scrollbar md:h-screen md:sticky md:top-[120px]">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row">
+        <aside class="w-full md:w-64 bg-white border-b md:border-r overflow-x-auto no-scrollbar md:h-screen md:sticky md:top-[130px]">
             <nav class="flex md:flex-col p-2 md:p-4 gap-1">
-                <button id="btn-saved" onclick="showSavedWords()" class="px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0 flex items-center gap-2 text-indigo-600 font-bold">
-                    <i class="fas fa-star text-yellow-400"></i> My Saved Words
+                <label class="hidden md:block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">Navigation</label>
+                <button id="btn-saved" onclick="showSaved()" class="px-4 py-3 md:w-full md:text-left rounded-xl text-sm shrink-0 flex items-center gap-2 transition-all">
+                    <i class="fas fa-star text-yellow-400"></i> My Dictionary
                 </button>
+                <hr class="hidden md:block my-2 border-slate-100">
+                <label class="hidden md:block text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">Chapters (1-18)</label>
                 <div id="chapterList" class="flex md:flex-col gap-1"></div>
             </nav>
         </aside>
 
-        <main class="flex-grow p-4 md:p-8">
-            <div id="quizletSection">
-                <div class="mb-4 flex justify-between items-center">
-                    <h2 id="chapterTitle" class="text-2xl font-black text-slate-800">Hoofdstuk 1</h2>
-                    <a id="extBtn" href="#" target="_blank" class="text-[10px] bg-slate-200 px-3 py-1 rounded-full font-bold text-slate-600 uppercase">Open External</a>
+        <main class="flex-grow p-4 md:p-10">
+            
+            <div id="savedSection">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-black text-slate-800 tracking-tight">Personal Flashcards</h2>
+                    <p class="text-slate-400 text-sm">Every word you translate is saved here automatically.</p>
                 </div>
-                <div class="relative w-full h-[450px] bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
-                    <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
+                
+                <div class="relative w-full h-80 cursor-pointer mb-8" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
+                    <div id="cardInner" class="card-inner w-full h-full relative">
+                        <div class="card-front bg-white border-2 border-slate-200 shadow-xl">
+                            <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-4">Dutch</span>
+                            <p id="flashFront" class="text-3xl font-black text-slate-800">Translate a word!</p>
+                            <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText)" class="mt-6 p-3 bg-indigo-50 text-indigo-600 rounded-full">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                        <div class="card-back shadow-2xl">
+                            <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-4">English</span>
+                            <p id="flashBack" class="text-3xl font-bold">The translation will appear on the back.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-8 items-center">
+                    <button onclick="prevCard()" class="text-slate-300 hover:text-indigo-600 transition"><i class="fas fa-arrow-left fa-2x"></i></button>
+                    <div class="px-6 py-2 bg-white border rounded-full font-bold text-slate-400 text-sm shadow-sm">
+                        Card <span id="cardCounter" class="text-indigo-600">0 / 0</span>
+                    </div>
+                    <button onclick="nextCard()" class="text-slate-300 hover:text-indigo-600 transition"><i class="fas fa-arrow-right fa-2x"></i></button>
                 </div>
             </div>
 
-            <div id="savedSection" class="hidden">
-                <h2 class="text-2xl font-black text-indigo-600 mb-6">My Dictionary Cards</h2>
-                <div class="relative w-full h-64 cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
-                    <div id="cardInner" class="card-inner w-full h-full relative">
-                        <div class="card-front bg-white border-2 border-indigo-100 text-2xl font-bold" id="flashFront">No words yet</div>
-                        <div class="card-back text-2xl font-bold" id="flashBack">Translate to start</div>
+            <div id="chapterSection" class="hidden">
+                <div class="text-center py-10 px-6 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                    <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-external-link-alt text-2xl"></i>
                     </div>
-                </div>
-                <div class="flex justify-center gap-6 mt-6 items-center">
-                    <button onclick="prevCard()" class="text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-left fa-2x"></i></button>
-                    <span id="cardCounter" class="font-bold text-slate-400">0 / 0</span>
-                    <button onclick="nextCard()" class="text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-right fa-2x"></i></button>
+                    <h2 id="chapterTitle" class="text-3xl font-black text-slate-800 mb-2">Hoofdstuk 1</h2>
+                    <p class="text-slate-500 mb-8 max-w-sm mx-auto text-sm leading-relaxed">
+                        Quizlet flashcards are ready. Click below to open them in a new tab for your study session.
+                    </p>
+                    <button id="launchBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95">
+                        Start Studying <i class="fas fa-play ml-2 text-xs"></i>
+                    </button>
                 </div>
             </div>
+
         </main>
     </div>
 
@@ -80,32 +113,32 @@
         let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
         let currentIdx = 0;
 
-        // Build Sidebar
+        // Build Chapter Buttons
         const list = document.getElementById('chapterList');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
-            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0";
+            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-xl text-sm shrink-0 transition-all";
             btn.innerHTML = `<span class="md:hidden">H${i}</span><span class="hidden md:inline">Hoofdstuk ${i}</span>`;
             btn.onclick = () => loadChapter(i);
             list.appendChild(btn);
         }
 
         function loadChapter(num) {
-            document.getElementById('quizletSection').classList.remove('hidden');
             document.getElementById('savedSection').classList.add('hidden');
+            document.getElementById('chapterSection').classList.remove('hidden');
             document.getElementById('chapterTitle').innerText = `Hoofdstuk ${num}`;
+            
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById(`btn-${num}`).classList.add('active-chapter');
+            document.getElementById(`btn-${num}`).scrollIntoView({ behavior: 'smooth', inline: 'center' });
 
-            // OFFICIAL EMBED FORMAT: quizlet.com/[ID]/flashcards/embed
-            const id = chapterData[num];
-            document.getElementById('quizletFrame').src = `https://quizlet.com/${id}/flashcards/embed?i=0&x=1jj1`;
-            document.getElementById('extBtn').href = `https://quizlet.com/${id}/flashcards`;
+            const url = `https://quizlet.com/${chapterData[num]}/flashcards`;
+            document.getElementById('launchBtn').onclick = () => window.open(url, '_blank');
         }
 
-        function showSavedWords() {
-            document.getElementById('quizletSection').classList.add('hidden');
+        function showSaved() {
+            document.getElementById('chapterSection').classList.add('hidden');
             document.getElementById('savedSection').classList.remove('hidden');
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById('btn-saved').classList.add('active-chapter');
@@ -117,22 +150,32 @@
             clearTimeout(timer);
             timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
-                if(!text) return;
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
-                const data = await res.json();
-                const trans = data.responseData.translatedText;
-                document.getElementById('targetText').innerText = trans;
+                const output = document.getElementById('targetText');
+                if(!text) { output.innerText = "..."; return; }
                 
-                if(!savedWords.find(w => w.nl === text)) {
-                    savedWords.push({ nl: text, en: trans });
-                    localStorage.setItem('myWords', JSON.stringify(savedWords));
-                }
+                try {
+                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
+                    const data = await res.json();
+                    const trans = data.responseData.translatedText;
+                    output.innerText = trans;
+                    
+                    if(!savedWords.find(w => w.nl.toLowerCase() === text.toLowerCase())) {
+                        savedWords.unshift({ nl: text, en: trans });
+                        localStorage.setItem('myWords', JSON.stringify(savedWords));
+                        currentIdx = 0; // Show newest first
+                        if(document.getElementById('savedSection').classList.contains('hidden')) {
+                            // Subtle notification or auto-switch logic here
+                        }
+                    }
+                } catch(e) { console.log("Translation Error"); }
             }, 800);
         }
 
         function updateSavedUI() {
             const counter = document.getElementById('cardCounter');
             if(savedWords.length === 0) {
+                document.getElementById('flashFront').innerText = "Dictionary Empty";
+                document.getElementById('flashBack').innerText = "Start translating above!";
                 counter.innerText = "0 / 0";
                 return;
             }
@@ -145,14 +188,19 @@
 
         function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
         function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
-        function speakInput() { 
+        function clearSaved() { if(confirm("Delete all saved words?")) { savedWords = []; localStorage.setItem('myWords', "[]"); updateSavedUI(); } }
+
+        function speakInput() { speakText(document.getElementById('sourceText').value); }
+        function speakText(text) {
+            if(!text) return;
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(document.getElementById('sourceText').value);
-            u.lang = 'nl-NL'; u.pitch = 1.1;
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'nl-NL'; u.pitch = 1.1; u.rate = 0.85;
             window.speechSynthesis.speak(u);
         }
 
-        loadChapter(1);
+        // Default to Saved Words view on start
+        showSaved();
     </script>
 </body>
 </html>
