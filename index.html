@@ -3,87 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Dutch-English Translator</title>
+    <title>Professional Dutch Translator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-        <div class="bg-indigo-600 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold italic tracking-tight">Dutch <i class="fas fa-bolt mx-1 text-yellow-300"></i> English</h1>
-            <p class="text-indigo-100 text-sm opacity-80">Instant translation & clear pronunciation</p>
+    <div class="max-w-4xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+        <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold italic">DeepL <span class="text-indigo-400">Pro</span></h1>
+                <p class="text-xs text-slate-400">Formal Dutch-English Dictionary Integration</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold uppercase text-slate-400">Formality:</span>
+                <select id="formality" onchange="performTranslation()" class="bg-slate-800 text-xs border-none rounded-lg p-1 text-white focus:ring-1 focus:ring-indigo-500">
+                    <option value="default">Default</option>
+                    <option value="formal">Formal</option>
+                    <option value="informal">Informal</option>
+                </select>
+            </div>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+        <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
             <div class="p-8">
                 <div class="flex justify-between items-center mb-4">
-                    <span class="font-bold text-gray-400 uppercase text-xs">Dutch</span>
-                    <button onclick="speak('nl-NL')" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 w-10 h-10 rounded-full transition flex items-center justify-center">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
+                    <span class="font-bold text-gray-400 text-xs tracking-widest">NEDERLANDS</span>
+                    <button onclick="speak('nl-NL')" class="hover:text-indigo-600 transition"><i class="fas fa-volume-up"></i></button>
                 </div>
-                <textarea id="sourceText" oninput="debounceTranslate()" placeholder="Typ hier..." 
-                    class="w-full h-40 resize-none border-none focus:ring-0 text-xl text-gray-800 placeholder-gray-300"></textarea>
+                <textarea id="sourceText" oninput="debounceTranslate()" placeholder="Voer tekst in..." 
+                    class="w-full h-44 resize-none border-none focus:ring-0 text-xl text-gray-800"></textarea>
             </div>
 
             <div class="p-8 bg-gray-50/50">
                 <div class="flex justify-between items-center mb-4">
-                    <span class="font-bold text-gray-400 uppercase text-xs">English</span>
-                    <button onclick="speak('en-US')" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 w-10 h-10 rounded-full transition flex items-center justify-center">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
+                    <span class="font-bold text-gray-400 text-xs tracking-widest">ENGLISH</span>
+                    <button onclick="speak('en-US')" class="hover:text-indigo-600 transition"><i class="fas fa-volume-up"></i></button>
                 </div>
-                <div id="targetText" class="w-full h-40 text-xl text-gray-800 font-medium"></div>
+                <div id="targetText" class="w-full h-44 text-xl text-gray-800 font-medium overflow-y-auto"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let typingTimer;
-        const doneTypingInterval = 400; 
+        // PASTE YOUR DEEPL API KEY HERE
+        const DEEPL_API_KEY = 'YOUR_API_KEY_HERE'; 
 
-        // 1. Instant Translation Logic
+        let typingTimer;
+        
         function debounceTranslate() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(performTranslation, doneTypingInterval);
+            typingTimer = setTimeout(performTranslation, 500);
         }
 
         async function performTranslation() {
             const text = document.getElementById('sourceText').value;
             const outputDiv = document.getElementById('targetText');
+            const formality = document.getElementById('formality').value;
 
-            if (!text.trim()) {
-                outputDiv.innerText = "";
+            if (!text.trim()) { outputDiv.innerText = ""; return; }
+            if (DEEPL_API_KEY === 'YOUR_API_KEY_HERE') {
+                outputDiv.innerHTML = '<span class="text-red-500 text-sm italic">Add your DeepL API key in the code to start.</span>';
                 return;
             }
 
             try {
-                // Using MyMemory API for the translation
-                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
+                // DeepL API requires a specific POST format
+                const response = await fetch(`https://api-free.deepl.com/v2/translate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        'text': text,
+                        'target_lang': 'EN-US',
+                        'source_lang': 'NL',
+                        'formality': formality
+                    })
+                });
+
                 const data = await response.json();
-                outputDiv.innerText = data.responseData.translatedText;
+                outputDiv.innerText = data.translations[0].text;
             } catch (error) {
-                console.error("Translation failed");
+                console.error("DeepL Error:", error);
             }
         }
 
-        // 2. Fixed Pronunciation Logic (Web Speech API)
         function speak(langCode) {
-            const sourceText = document.getElementById('sourceText').value;
-            const targetText = document.getElementById('targetText').innerText;
-            const textToSay = (langCode === 'nl-NL') ? sourceText : targetText;
+            const text = (langCode === 'nl-NL') 
+                ? document.getElementById('sourceText').value 
+                : document.getElementById('targetText').innerText;
 
-            if (!textToSay || textToSay === "") return;
-
-            // Stop any current speaking
+            if (!text) return;
             window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(textToSay);
+            const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = langCode;
-            utterance.rate = 0.9; // Slightly slower for clarity
-            utterance.pitch = 1;
-
             window.speechSynthesis.speak(utterance);
         }
     </script>
