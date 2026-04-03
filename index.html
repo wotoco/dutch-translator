@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Nederlands in Gang - Master Portal</title>
+    <title>NL In Gang - Study Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,14 +12,10 @@
             .active-chapter { border-bottom: none; border-left: 4px solid #4f46e5; background: #f8fafc; }
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* Interactive Flashcard CSS */
-        .card-container { perspective: 1000px; width: 100%; height: 350px; cursor: pointer; }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card-inner { transition: transform 0.6s; transform-style: preserve-3d; }
         .flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 2rem; box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 20px; text-align: center; }
-        .card-back { background: #4f46e5; color: white; transform: rotateY(180deg); }
-        .card-front { background: white; border: 2px solid #e2e8f0; }
+        .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 1.5rem; text-align: center; padding: 20px; }
+        .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
@@ -27,10 +23,8 @@
     <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3 md:p-4">
         <div class="max-w-7xl mx-auto flex flex-col gap-3">
             <h1 class="text-lg font-bold italic text-slate-800">NL <span class="text-indigo-600 font-black text-xl">In Gang</span></h1>
-            
-            <div class="w-full bg-slate-100 border rounded-xl p-1 flex items-center gap-2">
-                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Translate & save word..." 
-                       class="bg-transparent border-none focus:ring-0 text-base md:text-lg w-full px-3 py-2 outline-none">
+            <div class="w-full bg-slate-100 border rounded-xl p-1 flex items-center gap-2 shadow-inner">
+                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Translate & save..." class="bg-transparent border-none focus:ring-0 text-base md:text-lg w-full px-3 py-2 outline-none">
                 <div id="targetText" class="w-full text-indigo-600 font-bold px-2 py-2 text-base truncate italic">...</div>
                 <button onclick="speakInput()" class="p-3 bg-white text-indigo-600 rounded-lg shadow-sm active:scale-90"><i class="fas fa-play text-sm"></i></button>
             </div>
@@ -43,47 +37,33 @@
                 <button id="btn-saved" onclick="showSavedWords()" class="px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0 flex items-center gap-2 text-indigo-600 font-bold">
                     <i class="fas fa-star text-yellow-400"></i> My Saved Words
                 </button>
-                <hr class="hidden md:block my-2 border-slate-100">
                 <div id="chapterList" class="flex md:flex-col gap-1"></div>
             </nav>
         </aside>
 
         <main class="flex-grow p-4 md:p-8">
             <div id="quizletSection">
-                <h2 id="chapterTitle" class="text-2xl font-black text-slate-800 mb-4 tracking-tight">Hoofdstuk 1</h2>
-                <div class="relative w-full h-[450px] bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-white">
-                    <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0"></iframe>
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 id="chapterTitle" class="text-2xl font-black text-slate-800">Hoofdstuk 1</h2>
+                    <a id="extBtn" href="#" target="_blank" class="text-[10px] bg-slate-200 px-3 py-1 rounded-full font-bold text-slate-600 uppercase">Open External</a>
+                </div>
+                <div class="relative w-full h-[450px] bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+                    <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>
                 </div>
             </div>
 
             <div id="savedSection" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black text-indigo-600">My Dictionary Cards</h2>
-                    <button onclick="clearSaved()" class="text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase">Clear All</button>
-                </div>
-                
-                <div id="cardDisplay" class="mb-6">
-                    <div class="card-container" onclick="flipCard()">
-                        <div id="cardInner" class="card-inner">
-                            <div class="card-front">
-                                <span class="text-xs font-bold text-slate-300 uppercase tracking-widest mb-4">Dutch</span>
-                                <p id="flashFront" class="text-3xl font-black">Search a word!</p>
-                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText)" class="mt-6 text-indigo-400 hover:text-indigo-600 transition">
-                                    <i class="fas fa-volume-up text-2xl"></i>
-                                </button>
-                            </div>
-                            <div class="card-back">
-                                <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest mb-4">English</span>
-                                <p id="flashBack" class="text-3xl font-bold italic">...</p>
-                            </div>
-                        </div>
+                <h2 class="text-2xl font-black text-indigo-600 mb-6">My Dictionary Cards</h2>
+                <div class="relative w-full h-64 cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
+                    <div id="cardInner" class="card-inner w-full h-full relative">
+                        <div class="card-front bg-white border-2 border-indigo-100 text-2xl font-bold" id="flashFront">No words yet</div>
+                        <div class="card-back text-2xl font-bold" id="flashBack">Translate to start</div>
                     </div>
                 </div>
-
-                <div class="flex justify-center gap-4 mt-4">
-                    <button onclick="prevCard()" class="p-4 bg-white rounded-full shadow-md text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-left"></i></button>
-                    <span id="cardCounter" class="flex items-center font-bold text-slate-400">0 / 0</span>
-                    <button onclick="nextCard()" class="p-4 bg-white rounded-full shadow-md text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-right"></i></button>
+                <div class="flex justify-center gap-6 mt-6 items-center">
+                    <button onclick="prevCard()" class="text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-left fa-2x"></i></button>
+                    <span id="cardCounter" class="font-bold text-slate-400">0 / 0</span>
+                    <button onclick="nextCard()" class="text-slate-400 hover:text-indigo-600"><i class="fas fa-arrow-right fa-2x"></i></button>
                 </div>
             </div>
         </main>
@@ -98,14 +78,14 @@
         };
 
         let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentCardIndex = 0;
+        let currentIdx = 0;
 
-        // Init Sidebar
+        // Build Sidebar
         const list = document.getElementById('chapterList');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
-            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0 transition-all";
+            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0";
             btn.innerHTML = `<span class="md:hidden">H${i}</span><span class="hidden md:inline">Hoofdstuk ${i}</span>`;
             btn.onclick = () => loadChapter(i);
             list.appendChild(btn);
@@ -115,11 +95,13 @@
             document.getElementById('quizletSection').classList.remove('hidden');
             document.getElementById('savedSection').classList.add('hidden');
             document.getElementById('chapterTitle').innerText = `Hoofdstuk ${num}`;
-            
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById(`btn-${num}`).classList.add('active-chapter');
 
-            document.getElementById('quizletFrame').src = `https://quizlet.com/${chapterData[num]}/flashcards/embed`;
+            // OFFICIAL EMBED FORMAT: quizlet.com/[ID]/flashcards/embed
+            const id = chapterData[num];
+            document.getElementById('quizletFrame').src = `https://quizlet.com/${id}/flashcards/embed?i=0&x=1jj1`;
+            document.getElementById('extBtn').href = `https://quizlet.com/${id}/flashcards`;
         }
 
         function showSavedWords() {
@@ -127,57 +109,46 @@
             document.getElementById('savedSection').classList.remove('hidden');
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById('btn-saved').classList.add('active-chapter');
-            updateCardDisplay();
+            updateSavedUI();
         }
 
-        let typingTimer;
+        let timer;
         function debounceTranslate() {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(async () => {
+            clearTimeout(timer);
+            timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
                 if(!text) return;
-                try {
-                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
-                    const data = await res.json();
-                    const trans = data.responseData.translatedText;
-                    document.getElementById('targetText').innerText = trans;
-                    
-                    // Add to saved list if not duplicate
-                    if(!savedWords.find(w => w.nl === text)) {
-                        savedWords.push({ nl: text, en: trans });
-                        localStorage.setItem('myWords', JSON.stringify(savedWords));
-                    }
-                } catch(e) {}
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
+                const data = await res.json();
+                const trans = data.responseData.translatedText;
+                document.getElementById('targetText').innerText = trans;
+                
+                if(!savedWords.find(w => w.nl === text)) {
+                    savedWords.push({ nl: text, en: trans });
+                    localStorage.setItem('myWords', JSON.stringify(savedWords));
+                }
             }, 800);
         }
 
-        function updateCardDisplay() {
+        function updateSavedUI() {
             const counter = document.getElementById('cardCounter');
             if(savedWords.length === 0) {
-                document.getElementById('flashFront').innerText = "No words saved yet!";
-                document.getElementById('flashBack').innerText = "Translate a word to start.";
                 counter.innerText = "0 / 0";
                 return;
             }
-            const word = savedWords[currentCardIndex];
+            const word = savedWords[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
-            counter.innerText = `${currentCardIndex + 1} / ${savedWords.length}`;
+            counter.innerText = `${currentIdx + 1} / ${savedWords.length}`;
             document.getElementById('cardInner').classList.remove('flipped');
         }
 
-        function flipCard() { document.getElementById('cardInner').classList.toggle('flipped'); }
-        function nextCard() { if(currentCardIndex < savedWords.length - 1) { currentCardIndex++; updateCardDisplay(); } }
-        function prevCard() { if(currentCardIndex > 0) { currentCardIndex--; updateCardDisplay(); } }
-        function clearSaved() { if(confirm("Clear all your cards?")) { savedWords = []; localStorage.setItem('myWords', "[]"); updateCardDisplay(); } }
-
-        function speakInput() { speakText(document.getElementById('sourceText').value); }
-        function speakText(text) {
-            if(!text) return;
+        function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
+        function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
+        function speakInput() { 
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'nl-NL';
-            u.pitch = 1.1; u.rate = 0.85;
+            const u = new SpeechSynthesisUtterance(document.getElementById('sourceText').value);
+            u.lang = 'nl-NL'; u.pitch = 1.1;
             window.speechSynthesis.speak(u);
         }
 
