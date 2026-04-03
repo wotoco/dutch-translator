@@ -20,8 +20,9 @@
     <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto p-3">
             <div class="flex flex-col md:flex-row items-center gap-4">
+                
                 <div class="shrink-0 flex items-center gap-2">
-                    <div class="bg-indigo-600 text-white p-1.5 rounded-lg"><i class="fas fa-sync-alt text-sm"></i></div>
+                    <span class="text-2xl drop-shadow-sm">🇳🇱</span>
                     <h1 class="text-xl font-black tracking-tighter text-slate-800 italic">Dutch<span class="text-indigo-600">Everyday</span></h1>
                 </div>
 
@@ -65,7 +66,7 @@
 
         <main class="flex-grow p-4 md:p-10">
             <div id="savedSection">
-                <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight">Your Cards</h2>
+                <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight italic">Your Learning Deck</h2>
                 <div class="relative w-full h-80 cursor-pointer mb-8" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
                     <div id="cardInner" class="card-inner w-full h-full relative">
                         <div class="card-front bg-white border-2 border-slate-200 shadow-xl">
@@ -96,13 +97,13 @@
                     <input type="text" id="quizInput" onkeydown="if(event.key === 'Enter') checkQuizAnswer()"
                            class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-3 px-4 text-center font-bold mb-4 outline-none focus:border-orange-400" placeholder="Type translation...">
                     <div id="quizFeedback" class="h-4 text-xs font-bold mb-4"></div>
-                    <button onclick="checkQuizAnswer()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold transition active:scale-95">Check</button>
+                    <button onclick="checkQuizAnswer()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-orange-100">Check Answer</button>
                 </div>
             </div>
 
-            <div id="chapterSection" class="hidden text-center py-10 bg-white rounded-3xl border-2 border-dashed">
+            <div id="chapterSection" class="hidden text-center py-10 bg-white rounded-3xl border-2 border-dashed border-slate-200">
                 <h2 id="chapterTitle" class="text-3xl font-black text-slate-800 mb-4 tracking-tight">Hoofdstuk 1</h2>
-                <button id="launchBtn" class="bg-indigo-600 text-white px-10 py-4 rounded-xl font-bold shadow-lg transition active:scale-95">Open Quizlet Flashcards</button>
+                <button id="launchBtn" class="bg-indigo-600 text-white px-10 py-4 rounded-xl font-bold shadow-lg transition active:scale-95 shadow-indigo-100">Open Quizlet Flashcards</button>
             </div>
         </main>
     </div>
@@ -199,7 +200,6 @@
             document.getElementById('flashBack').innerText = word.en;
             document.getElementById('cardCounter').innerText = `${currentIdx + 1}/${savedWords.length}`;
             document.getElementById('cardInner').classList.remove('flipped');
-            if(document.getElementById('savedSection').classList.contains('hidden') === false) speakText(word.nl, 'nl');
         }
 
         function generateQuizQuestion() {
@@ -218,7 +218,7 @@
                 f.innerText = "CORRECT! 🎉"; f.className = "text-green-500 mb-4";
                 setTimeout(generateQuizQuestion, 1200);
             } else {
-                f.innerText = `Try again! (Solution: ${currentQuizWord.en})`;
+                f.innerText = `Incorrect. (Solution: ${currentQuizWord.en})`;
                 f.className = "text-red-400 mb-4";
             }
         }
@@ -226,14 +226,41 @@
         function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
         function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
 
+        // --- UPDATED FEMALE VOICE LOGIC ---
         function speakText(text, lang) {
             if(!text || text === "...") return;
             window.speechSynthesis.cancel();
+            
             const u = new SpeechSynthesisUtterance(text);
             u.lang = lang === 'nl' ? 'nl-NL' : 'en-US';
-            u.pitch = 1.1; u.rate = 0.85;
+            
+            const voices = window.speechSynthesis.getVoices();
+            
+            if (lang === 'nl') {
+                // Priority list for Dutch female voices across different systems
+                const dutchFemale = voices.find(v => 
+                    v.lang.startsWith('nl') && 
+                    (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen'))
+                );
+                if (dutchFemale) u.voice = dutchFemale;
+                u.pitch = 1.2; // Set higher pitch for female tone
+            } else {
+                const englishFemale = voices.find(v => 
+                    v.lang.startsWith('en') && 
+                    (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria'))
+                );
+                if (englishFemale) u.voice = englishFemale;
+                u.pitch = 1.1;
+            }
+
+            u.rate = 0.85; 
             window.speechSynthesis.speak(u);
         }
+
+        // Initialize voices for mobile browsers
+        window.speechSynthesis.onvoiceschanged = () => {
+            const voices = window.speechSynthesis.getVoices();
+        };
 
         showSaved();
     </script>
