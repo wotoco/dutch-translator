@@ -8,26 +8,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .active-chapter { border-left: 4px solid #4f46e5; background: #f8fafc; color: #4f46e5; font-weight: bold; }
-        iframe { border-radius: 1.5rem; border: 1px solid #e2e8f0; }
-        .custom-height { height: calc(100vh - 120px); }
+        .quizlet-container { position: relative; width: 100%; height: 550px; border-radius: 1.5rem; overflow: hidden; background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
+<body class="bg-slate-50 font-sans text-slate-900">
 
     <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 items-center">
             <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fas fa-book-reader"></i></div>
-                <h1 class="text-xl font-bold italic text-slate-800">Nederlands <span class="text-indigo-600 font-black text-2xl">In Gang</span></h1>
+                <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fas fa-language"></i></div>
+                <h1 class="text-xl font-bold italic text-slate-800">Nederlands <span class="text-indigo-600 font-black">In Gang</span></h1>
             </div>
             
             <div class="flex-grow w-full bg-slate-100 border rounded-2xl p-1 flex items-center gap-2">
-                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Type a Dutch word to translate..." 
+                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search or translate Dutch..." 
                        class="bg-transparent border-none focus:ring-0 text-lg w-full px-4 py-2 outline-none">
                 <div class="h-8 w-px bg-slate-300 mx-2"></div>
-                <div id="targetText" class="w-full text-indigo-600 font-semibold px-4 py-2 text-lg truncate italic">
-                    Translation...
-                </div>
+                <div id="targetText" class="w-full text-indigo-600 font-semibold px-4 py-2 text-lg truncate italic">...</div>
                 <button onclick="speak()" class="p-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl shadow-sm transition active:scale-95 mr-1">
                     <i class="fas fa-volume-up"></i>
                 </button>
@@ -39,50 +38,42 @@
         
         <aside class="w-full md:w-64 bg-white border-r p-6 overflow-y-auto md:h-screen md:sticky md:top-24 custom-scroll">
             <nav class="space-y-1">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Chapters (1-18)</label>
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Lessons 1-18</label>
                 <div id="chapterList">
                     </div>
             </nav>
         </aside>
 
         <main class="flex-grow p-4 lg:p-10">
-            <div class="mb-6 flex justify-between items-start">
+            <div class="mb-6 flex justify-between items-end">
                 <div>
-                    <h2 id="chapterTitle" class="text-4xl font-black text-slate-800 tracking-tight text-indigo-600">Hoofdstuk 1</h2>
-                    <p class="text-slate-500 font-medium">Interactive Flashcards & Dictionary</p>
+                    <h2 id="chapterTitle" class="text-3xl font-black text-slate-800">Hoofdstuk 1</h2>
+                    <p class="text-slate-500 font-medium">Interactive Study Set</p>
                 </div>
-                <div class="bg-white px-4 py-2 rounded-full border text-xs font-bold text-slate-400 shadow-sm">
-                    MODE: FREE TRANSLATION
-                </div>
+                <a id="directLink" href="#" target="_blank" class="text-xs font-bold text-indigo-600 hover:underline">
+                    QUIZLET MODE <i class="fas fa-external-link-alt ml-1"></i>
+                </a>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden aspect-video w-full border-4 border-white">
-                <iframe id="quizletFrame" 
-                        src="https://quizlet.com/218836453/flashcards/embed?i=0&x=1jj1" 
-                        class="w-full h-full">
-                </iframe>
+            <div class="quizlet-container">
+                <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0"></iframe>
             </div>
-            
-            <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex gap-4 p-4">
-                    <div class="h-10 w-10 shrink-0 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">1</div>
-                    <p class="text-sm text-slate-600 leading-relaxed">Select a <strong>Chapter</strong> from the sidebar to load the specific vocabulary set for your lesson.</p>
-                </div>
-                <div class="flex gap-4 p-4">
-                    <div class="h-10 w-10 shrink-0 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">2</div>
-                    <p class="text-sm text-slate-600 leading-relaxed">Search any word in the <strong>Top Bar</strong>. It translates live and you can hear the pronunciation by clicking the volume icon.</p>
-                </div>
+
+            <div class="mt-6 flex gap-4 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <i class="fas fa-info-circle text-indigo-500 mt-1"></i>
+                <p class="text-sm text-slate-600">
+                    <strong>Tip:</strong> If the cards don't appear, try disabling your ad-blocker or logging into Quizlet in another tab. Quizlet sometimes restricts embedding on certain browsers.
+                </p>
             </div>
         </main>
     </div>
 
     <script>
-        // --- CHAPTER DATA ---
-        // Replace the IDs in quotes as you find them on Quizlet.
+        // All 18 UIDs provided
         const chapterData = {
-            1: "218836453", 
-            2: "218836670",    // Updated per your request
-            3: "218836794", 
+            1: "218836453",
+            2: "218836670",
+            3: "218836794",
             4: "218837040",
             5: "218837082",
             6: "218837677",
@@ -100,75 +91,58 @@
             18: "218841206"
         };
 
-        // Generate Sidebar Buttons for all 18 Chapters
+        // Create Sidebar
         const list = document.getElementById('chapterList');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
-            btn.className = "w-full text-left px-4 py-3 rounded-xl transition text-sm hover:bg-slate-50 mb-1 flex items-center justify-between group";
-            btn.innerHTML = `<span>Hoofdstuk ${i}</span> <i class="fas fa-chevron-right text-[10px] opacity-0 group-hover:opacity-40 transition-opacity"></i>`;
+            btn.className = "w-full text-left px-4 py-3 rounded-xl transition text-sm hover:bg-slate-50 mb-1 flex items-center justify-between";
+            btn.innerHTML = `<span>Hoofdstuk ${i}</span>`;
             btn.onclick = () => loadChapter(i);
             list.appendChild(btn);
         }
 
         function loadChapter(num) {
+            const id = chapterData[num];
             document.getElementById('chapterTitle').innerText = `Hoofdstuk ${num}`;
-            
-            // UI Styling for active state
             document.querySelectorAll('#chapterList button').forEach(b => b.classList.remove('active-chapter'));
-            const activeBtn = document.getElementById(`btn-${num}`);
-            if(activeBtn) activeBtn.classList.add('active-chapter');
+            document.getElementById(`btn-${num}`).classList.add('active-chapter');
 
-            // Update the Flashcard Embed
-            const quizletID = chapterData[num];
-            
-            // If an ID is missing, show a placeholder or keep Chapter 1
-            if(!quizletID || quizletID === "ENTER_ID") {
-                console.warn(`No ID found for Chapter ${num}. Please add it to the chapterData object.`);
-                return;
-            }
-            
-            document.getElementById('quizletFrame').src = `https://quizlet.com/${quizletID}/flashcards/embed?i=0&x=1jj1`;
+            // Set the Quizlet Embed URL
+            // Using /flashcards/embed for the interactive card mode
+            document.getElementById('quizletFrame').src = `https://quizlet.com/${id}/flashcards/embed?i=0&x=1jj1`;
+            document.getElementById('directLink').href = `https://quizlet.com/${id}/`;
         }
 
-        // --- FREE TRANSLATOR LOGIC ---
+        // --- TRANSLATOR LOGIC ---
         let typingTimer;
         function debounceTranslate() {
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(performTranslation, 400); 
+            typingTimer = setTimeout(async () => {
+                const text = document.getElementById('sourceText').value;
+                const output = document.getElementById('targetText');
+                if(!text.trim()) { output.innerText = "..."; return; }
+                
+                try {
+                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
+                    const data = await res.json();
+                    output.innerText = data.responseData.translatedText;
+                } catch(e) { console.log("API Error"); }
+            }, 450);
         }
 
-        async function performTranslation() {
-            const text = document.getElementById('sourceText').value;
-            const outputDiv = document.getElementById('targetText');
-            
-            if (!text.trim()) { 
-                outputDiv.innerText = "Translation..."; 
-                return; 
-            }
-
-            try {
-                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
-                const data = await response.json();
-                outputDiv.innerText = data.responseData.translatedText;
-            } catch (error) { 
-                outputDiv.innerText = "Error translating.";
-            }
-        }
-
-        // --- PRONUNCIATION LOGIC ---
+        // --- SPEECH LOGIC ---
         function speak() {
             const text = document.getElementById('sourceText').value;
-            if (!text) return;
-
+            if(!text) return;
             window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'nl-NL'; // Use Dutch Voice
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'nl-NL';
+            u.rate = 0.9;
+            window.speechSynthesis.speak(u);
         }
 
-        // Initialize Chapter 1 on Load
+        // Start at Chapter 1
         loadChapter(1);
     </script>
 </body>
