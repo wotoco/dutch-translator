@@ -2,102 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nederlands in Gang - Study Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Nederlands in Gang - Mobile Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .active-chapter { border-left: 4px solid #4f46e5; background: #f8fafc; color: #4f46e5; font-weight: bold; }
-        .quizlet-container { position: relative; width: 100%; height: 550px; border-radius: 1.5rem; overflow: hidden; background: #ffffff; border: 2px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .active-chapter { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 800; background: #f1f5f9; }
+        @media (min-width: 768px) {
+            .active-chapter { border-bottom: none; border-left: 4px solid #4f46e5; background: #f8fafc; }
+        }
+        /* Custom scroll for the horizontal chapter bar on mobile */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900">
+<body class="bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
 
-    <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 items-center">
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-indigo-600 text-white p-2 rounded-lg"><i class="fas fa-language"></i></div>
-                <h1 class="text-xl font-bold italic text-slate-800">Nederlands <span class="text-indigo-600 font-black">In Gang</span></h1>
+    <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3 md:p-4">
+        <div class="max-w-7xl mx-auto flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <h1 class="text-lg font-bold italic text-slate-800 shrink-0">NL <span class="text-indigo-600 font-black text-xl">In Gang</span></h1>
+                <div class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded font-bold">FEMALE VOICE ACTIVE</div>
             </div>
             
-            <div class="flex-grow w-full bg-slate-100 border rounded-2xl p-1 flex items-center gap-2">
-                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search or translate Dutch..." 
-                       class="bg-transparent border-none focus:ring-0 text-lg w-full px-4 py-2 outline-none">
-                <div class="h-8 w-px bg-slate-300 mx-2"></div>
-                <div id="targetText" class="w-full text-indigo-600 font-semibold px-4 py-2 text-lg truncate italic">...</div>
-                <button onclick="speak()" class="p-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl shadow-sm transition active:scale-95 mr-1">
-                    <i class="fas fa-volume-up"></i>
+            <div class="w-full bg-slate-100 border rounded-xl p-1 flex items-center gap-2 shadow-inner">
+                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Dutch word..." 
+                       class="bg-transparent border-none focus:ring-0 text-base md:text-lg w-full px-3 py-2 outline-none">
+                <div class="h-6 w-px bg-slate-300"></div>
+                <div id="targetText" class="w-full text-indigo-600 font-bold px-2 py-2 text-base truncate italic">...</div>
+                <button onclick="speak()" class="p-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-lg shadow-sm active:scale-90 transition">
+                    <i class="fas fa-venus text-lg"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row min-h-screen">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row">
         
-        <aside class="w-full md:w-64 bg-white border-r p-6 overflow-y-auto md:h-screen md:sticky md:top-24 custom-scroll">
-            <nav class="space-y-1">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Lessons 1-18</label>
-                <div id="chapterList">
-                    </div>
-            </nav>
+        <aside class="w-full md:w-64 bg-white border-b md:border-r overflow-x-auto no-scrollbar md:h-screen md:sticky md:top-[120px]">
+            <nav id="chapterList" class="flex md:flex-col p-2 md:p-4 whitespace-nowrap md:whitespace-normal gap-1">
+                </nav>
         </aside>
 
-        <main class="flex-grow p-4 lg:p-10">
-            <div class="mb-6 flex justify-between items-end">
-                <div>
-                    <h2 id="chapterTitle" class="text-3xl font-black text-slate-800">Hoofdstuk 1</h2>
-                    <p class="text-slate-500 font-medium">Interactive Study Set</p>
-                </div>
-                <a id="directLink" href="#" target="_blank" class="text-xs font-bold text-indigo-600 hover:underline">
-                    QUIZLET MODE <i class="fas fa-external-link-alt ml-1"></i>
+        <main class="flex-grow p-4 md:p-8">
+            <div class="mb-4 flex justify-between items-end">
+                <h2 id="chapterTitle" class="text-2xl font-black text-slate-800">Hoofdstuk 1</h2>
+                <a id="directLink" href="#" target="_blank" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                    FULL SITE <i class="fas fa-external-link-alt ml-1"></i>
                 </a>
             </div>
 
-            <div class="quizlet-container">
+            <div class="relative w-full h-[400px] md:h-[550px] bg-white rounded-2xl shadow-lg border-2 border-white overflow-hidden">
                 <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0"></iframe>
             </div>
 
-            <div class="mt-6 flex gap-4 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                <i class="fas fa-info-circle text-indigo-500 mt-1"></i>
-                <p class="text-sm text-slate-600">
-                    <strong>Tip:</strong> If the cards don't appear, try disabling your ad-blocker or logging into Quizlet in another tab. Quizlet sometimes restricts embedding on certain browsers.
-                </p>
-            </div>
+            <p class="mt-4 text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">
+                If cards don't load, please log into Quizlet in your browser
+            </p>
         </main>
     </div>
 
     <script>
-        // All 18 UIDs provided
         const chapterData = {
-            1: "218836453",
-            2: "218836670",
-            3: "218836794",
-            4: "218837040",
-            5: "218837082",
-            6: "218837677",
-            7: "218837982",
-            8: "218838021",
-            9: "218838194",
-            10: "218838247",
-            11: "218838318",
-            12: "218838753",
-            13: "218838787",
-            14: "218839448",
-            15: "218840442",
-            16: "218840728",
-            17: "218840757",
-            18: "218841206"
+            1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040",
+            5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021",
+            9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753",
+            13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728",
+            17: "218840757", 18: "218841206"
         };
 
-        // Create Sidebar
         const list = document.getElementById('chapterList');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
-            btn.className = "w-full text-left px-4 py-3 rounded-xl transition text-sm hover:bg-slate-50 mb-1 flex items-center justify-between";
-            btn.innerHTML = `<span>Hoofdstuk ${i}</span>`;
+            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm transition-all shrink-0 flex items-center justify-center md:justify-start";
+            btn.innerHTML = `<span class="md:hidden">H${i}</span><span class="hidden md:inline">Hoofdstuk ${i}</span>`;
             btn.onclick = () => loadChapter(i);
             list.appendChild(btn);
         }
@@ -107,42 +86,68 @@
             document.getElementById('chapterTitle').innerText = `Hoofdstuk ${num}`;
             document.querySelectorAll('#chapterList button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById(`btn-${num}`).classList.add('active-chapter');
+            
+            // Auto-scroll the chapter bar on mobile to keep selected item visible
+            document.getElementById(`btn-${num}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
-            // Set the Quizlet Embed URL
-            // Using /flashcards/embed for the interactive card mode
             document.getElementById('quizletFrame').src = `https://quizlet.com/${id}/flashcards/embed?i=0&x=1jj1`;
             document.getElementById('directLink').href = `https://quizlet.com/${id}/`;
         }
 
-        // --- TRANSLATOR LOGIC ---
+        // TRANSLATION FIX
         let typingTimer;
         function debounceTranslate() {
             clearTimeout(typingTimer);
+            const output = document.getElementById('targetText');
+            output.innerText = "..."; 
             typingTimer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value;
-                const output = document.getElementById('targetText');
                 if(!text.trim()) { output.innerText = "..."; return; }
                 
                 try {
+                    // Force the translation pair more explicitly
                     const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
                     const data = await res.json();
-                    output.innerText = data.responseData.translatedText;
-                } catch(e) { console.log("API Error"); }
-            }, 450);
+                    
+                    if(data.responseData.translatedText) {
+                        output.innerText = data.responseData.translatedText;
+                    } else {
+                        output.innerText = "No result.";
+                    }
+                } catch(e) { 
+                    output.innerText = "Error"; 
+                }
+            }, 600);
         }
 
-        // --- SPEECH LOGIC ---
+        // FEMALE VOICE LOGIC
         function speak() {
             const text = document.getElementById('sourceText').value;
             if(!text) return;
             window.speechSynthesis.cancel();
+            
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'nl-NL';
-            u.rate = 0.9;
+
+            // Find all available voices
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Look for a Dutch Female voice (usually named 'Laura', 'Ellen', or contains 'Female')
+            // If the browser doesn't specify, we'll try to find any NL voice that sounds female
+            const femaleVoice = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura')));
+            
+            if (femaleVoice) {
+                u.voice = femaleVoice;
+            }
+
+            u.rate = 0.85; // Natural speed
+            u.pitch = 1.1; // Slightly higher pitch for female tone
             window.speechSynthesis.speak(u);
         }
 
-        // Start at Chapter 1
+        // Essential for voices to load correctly in some browsers
+        window.speechSynthesis.onvoiceschanged = () => { speak(); window.speechSynthesis.cancel(); };
+
         loadChapter(1);
     </script>
 </body>
