@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Nederlands in Gang - Study Portal</title>
+    <title>Nederlands in Gang - Master Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -13,22 +13,26 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Flashcard Animation */
+        .card-inner { transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer; }
+        .flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card-back { transform: rotateY(180deg); background-color: #4f46e5; color: white; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
 
     <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3 md:p-4">
         <div class="max-w-7xl mx-auto flex flex-col gap-3">
-            <div class="flex items-center justify-between">
-                <h1 class="text-lg font-bold italic text-slate-800 shrink-0">NL <span class="text-indigo-600 font-black text-xl">In Gang</span></h1>
-            </div>
+            <h1 class="text-lg font-bold italic text-slate-800">NL <span class="text-indigo-600 font-black text-xl">In Gang</span></h1>
             
             <div class="w-full bg-slate-100 border rounded-xl p-1 flex items-center gap-2 shadow-inner">
-                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Typ hier..." 
+                <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search word..." 
                        class="bg-transparent border-none focus:ring-0 text-base md:text-lg w-full px-3 py-2 outline-none">
                 <div class="h-6 w-px bg-slate-300"></div>
                 <div id="targetText" class="w-full text-indigo-600 font-bold px-2 py-2 text-base truncate italic">...</div>
-                <button onclick="speak()" class="p-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-lg shadow-sm active:scale-90 transition flex items-center justify-center">
+                <button onclick="speak()" class="p-3 bg-white text-indigo-600 hover:bg-indigo-50 rounded-lg shadow-sm active:scale-90 transition">
                     <i class="fas fa-play text-sm"></i>
                 </button>
             </div>
@@ -36,27 +40,36 @@
     </header>
 
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row">
-        
         <aside class="w-full md:w-64 bg-white border-b md:border-r overflow-x-auto no-scrollbar md:h-screen md:sticky md:top-[120px]">
-            <nav id="chapterList" class="flex md:flex-col p-2 md:p-4 whitespace-nowrap md:whitespace-normal gap-1">
-                </nav>
+            <nav id="chapterList" class="flex md:flex-col p-2 md:p-4 whitespace-nowrap gap-1"></nav>
         </aside>
 
         <main class="flex-grow p-4 md:p-8">
+            <div id="sessionCardArea" class="hidden mb-10">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Latest Search Card (Tap to flip)</h3>
+                <div class="relative w-full h-40 perspective-1000" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
+                    <div class="card-inner w-full h-full relative">
+                        <div class="card-face bg-white border-2 border-indigo-100 text-xl font-bold" id="cardFront">Dutch</div>
+                        <div class="card-face card-back text-xl font-bold" id="cardBack">English</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="mb-4 flex justify-between items-end">
                 <h2 id="chapterTitle" class="text-2xl font-black text-slate-800">Hoofdstuk 1</h2>
-                <a id="directLink" href="#" target="_blank" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-                    FULL SITE <i class="fas fa-external-link-alt ml-1"></i>
-                </a>
+                <a id="directLink" href="#" target="_blank" class="text-xs font-bold text-indigo-600">QUIZLET <i class="fas fa-external-link-alt"></i></a>
             </div>
 
             <div class="relative w-full h-[400px] md:h-[550px] bg-white rounded-2xl shadow-lg border-2 border-white overflow-hidden">
                 <iframe id="quizletFrame" src="" width="100%" height="100%" frameborder="0"></iframe>
             </div>
-
-            <p class="mt-4 text-[10px] text-slate-400 text-center uppercase tracking-widest font-bold">
-                Log in to Quizlet if cards do not load
-            </p>
+            
+            <div class="mt-10">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Session History</h3>
+                <div id="historyList" class="space-y-2">
+                    <p class="text-slate-300 italic text-sm">No words searched yet this session.</p>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -73,7 +86,7 @@
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
-            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm transition-all shrink-0 flex items-center justify-center md:justify-start";
+            btn.className = "px-4 py-2 md:py-3 md:w-full md:text-left rounded-lg text-sm shrink-0 flex items-center justify-center md:justify-start transition-all";
             btn.innerHTML = `<span class="md:hidden">H${i}</span><span class="hidden md:inline">Hoofdstuk ${i}</span>`;
             btn.onclick = () => loadChapter(i);
             list.appendChild(btn);
@@ -84,50 +97,49 @@
             document.getElementById('chapterTitle').innerText = `Hoofdstuk ${num}`;
             document.querySelectorAll('#chapterList button').forEach(b => b.classList.remove('active-chapter'));
             document.getElementById(`btn-${num}`).classList.add('active-chapter');
-            
-            // Mobile auto-scroll logic
-            document.getElementById(`btn-${num}`).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-
+            document.getElementById(`btn-${num}`).scrollIntoView({ behavior: 'smooth', inline: 'center' });
             document.getElementById('quizletFrame').src = `https://quizlet.com/${id}/flashcards/embed?i=0&x=1jj1`;
-            document.getElementById('directLink').href = `https://quizlet.com/${id}/`;
         }
 
-        // Translation logic
         let typingTimer;
         function debounceTranslate() {
             clearTimeout(typingTimer);
-            const output = document.getElementById('targetText');
-            output.innerText = "..."; 
             typingTimer = setTimeout(async () => {
-                const text = document.getElementById('sourceText').value;
-                if(!text.trim()) { output.innerText = "..."; return; }
+                const text = document.getElementById('sourceText').value.trim();
+                if(!text) return;
                 
                 try {
                     const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=nl|en`);
                     const data = await res.json();
-                    if(data.responseData && data.responseData.translatedText) {
-                        output.innerText = data.responseData.translatedText;
-                    }
-                } catch(e) { 
-                    output.innerText = "Error"; 
-                }
-            }, 600);
+                    const translation = data.responseData.translatedText;
+                    
+                    document.getElementById('targetText').innerText = translation;
+                    updateSessionCard(text, translation);
+                } catch(e) { console.log(e); }
+            }, 800);
         }
 
-        // Voice Logic (Female Toned)
+        function updateSessionCard(dutch, english) {
+            document.getElementById('sessionCardArea').classList.remove('hidden');
+            document.getElementById('cardFront').innerText = dutch;
+            document.getElementById('cardBack').innerText = english;
+            
+            // Add to History
+            const history = document.getElementById('historyList');
+            if (history.querySelector('p')) history.innerHTML = '';
+            
+            const item = document.createElement('div');
+            item.className = "flex justify-between bg-white p-3 rounded-xl border border-slate-200 text-sm shadow-sm animate-fade-in";
+            item.innerHTML = `<strong>${dutch}</strong> <span class="text-indigo-600">${english}</span>`;
+            history.prepend(item);
+        }
+
         function speak() {
             const text = document.getElementById('sourceText').value;
             if(!text) return;
             window.speechSynthesis.cancel();
-            
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'nl-NL';
-
-            const voices = window.speechSynthesis.getVoices();
-            const femaleVoice = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura')));
-            
-            if (femaleVoice) u.voice = femaleVoice;
-            u.rate = 0.85;
             u.pitch = 1.1; 
             window.speechSynthesis.speak(u);
         }
