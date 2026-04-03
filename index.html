@@ -7,12 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .active-nav { background: #4f46e5 !important; color: white !important; font-weight: 800; transform: scale(1.05); box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4); }
+        .active-nav { background: #4f46e5 !important; color: white !important; font-weight: 800; transform: scale(1.05); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .card-inner { transition: transform 0.4s; transform-style: preserve-3d; }
         .flipped { transform: rotateY(180deg); }
         .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
         .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
+        .conjugation-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
@@ -20,7 +21,6 @@
     <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto p-3">
             <div class="flex flex-col md:flex-row items-center gap-4">
-                
                 <div class="shrink-0 flex items-center gap-2">
                     <span class="text-2xl drop-shadow-sm">🇳🇱</span>
                     <h1 class="text-xl font-black tracking-tighter text-slate-800 italic">Dutch<span class="text-indigo-600">Everyday</span></h1>
@@ -30,9 +30,7 @@
                     <span id="label-source" class="text-[10px] font-black text-slate-400 mr-2 uppercase">NL</span>
                     <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Typ hier..." 
                            class="bg-transparent border-none focus:ring-0 text-base font-medium w-full py-3 outline-none">
-                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-400 hover:text-indigo-600 p-2">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
+                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-400 hover:text-indigo-600 p-2"><i class="fas fa-volume-up"></i></button>
                 </div>
 
                 <button onclick="swapLanguages()" class="bg-white border shadow-sm w-10 h-10 rounded-full flex items-center justify-center text-indigo-600 hover:bg-indigo-50 active:scale-90 transition-all">
@@ -42,9 +40,7 @@
                 <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl border border-indigo-100 px-3">
                     <span id="label-target" class="text-[10px] font-black text-indigo-400 mr-2 uppercase">EN</span>
                     <div id="targetText" class="text-indigo-700 font-bold py-3 text-base italic truncate w-full">...</div>
-                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 p-2 ml-1">
-                        <i class="fas fa-volume-up"></i>
-                    </button>
+                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 p-2"><i class="fas fa-volume-up"></i></button>
                     <i class="fas fa-check-circle text-indigo-300 text-sm ml-1 opacity-0 transition-opacity" id="saveIndicator"></i>
                 </div>
             </div>
@@ -55,7 +51,7 @@
         <aside class="w-full md:w-56 bg-white border-b md:border-r overflow-x-auto no-scrollbar md:h-screen md:sticky md:top-[90px]">
             <nav class="p-4 flex flex-col gap-6">
                 <div class="flex flex-row md:flex-col gap-2">
-                    <button id="nav-saved" onclick="showSaved()" class="flex-1 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 transition-all">
+                    <button id="nav-saved" onclick="showSaved()" class="flex-1 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 transition-all active-nav">
                         <i class="fas fa-layer-group"></i> DECK
                     </button>
                     <button id="nav-quiz" onclick="showQuiz()" class="flex-1 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all">
@@ -63,13 +59,30 @@
                     </button>
                 </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic text-center md:text-left">Chapters</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic">Chapters</label>
                     <div id="chapterGrid" class="grid grid-cols-6 md:grid-cols-3 lg:grid-cols-4 gap-2"></div>
                 </div>
             </nav>
         </aside>
 
         <main class="flex-grow p-4 md:p-10">
+            <div id="conjugationBox" class="hidden mb-10 bg-white rounded-3xl p-6 border-2 border-indigo-50 shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                    <i class="fas fa-terminal text-indigo-500"></i>
+                    <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">Verb Conjugator: <span id="verbName" class="text-indigo-600 lowercase italic">lopen</span></h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-2">PRESENT (OTT)</p>
+                        <div id="presTense" class="bg-slate-50 rounded-xl p-4"></div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-2">PAST (OVT)</p>
+                        <div id="pastTense" class="bg-slate-50 rounded-xl p-4"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="savedSection">
                 <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight italic">Your Learning Deck</h2>
                 <div class="relative w-full h-80 cursor-pointer mb-8" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
@@ -82,7 +95,7 @@
                         <div class="card-back shadow-2xl">
                             <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-4">English</span>
                             <p id="flashBack" class="text-3xl font-bold italic">...</p>
-                            <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 text-white/70 hover:text-white transition"><i class="fas fa-volume-up text-xl"></i></button>
+                            <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 text-white/50 hover:text-white"><i class="fas fa-volume-up text-xl"></i></button>
                         </div>
                     </div>
                 </div>
@@ -96,9 +109,7 @@
             <div id="quizSection" class="hidden">
                 <h2 class="text-2xl font-black text-orange-600 mb-6 text-center">Quiz Mode</h2>
                 <div class="bg-white p-8 rounded-3xl border-2 border-orange-100 shadow-xl text-center max-w-sm mx-auto">
-                    <div class="flex justify-center mb-4">
-                        <button onclick="speakText(currentQuizWord.nl, 'nl')" class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center hover:bg-orange-100 transition"><i class="fas fa-volume-up"></i></button>
-                    </div>
+                    <button onclick="speakText(currentQuizWord.nl, 'nl')" class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full mx-auto mb-4 flex items-center justify-center hover:bg-orange-100 transition"><i class="fas fa-volume-up"></i></button>
                     <h3 id="quizQuestion" class="text-3xl font-black text-slate-800 mb-6">?</h3>
                     <input type="text" id="quizInput" onkeydown="if(event.key === 'Enter') checkQuizAnswer()"
                            class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-3 px-4 text-center font-bold mb-4 outline-none focus:border-orange-400" placeholder="Type translation...">
@@ -115,26 +126,23 @@
     </div>
 
     <script>
-        const chapterData = {
-            1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 
-            6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 
-            11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 
-            16: "218840728", 17: "218840757", 18: "218841206"
-        };
+        const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
+        
+        // --- CLEAN DUPLICATES ON STARTUP ---
+        let rawWords = JSON.parse(localStorage.getItem('myWords')) || [];
+        let savedWords = rawWords.filter((word, index, self) =>
+            index === self.findIndex((t) => t.nl.toLowerCase().trim() === word.nl.toLowerCase().trim())
+        );
+        localStorage.setItem('myWords', JSON.stringify(savedWords));
 
-        let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentIdx = 0;
-        let currentQuizWord = null;
-        let isNlToEn = true;
+        let currentIdx = 0; let currentQuizWord = null; let isNlToEn = true;
 
         const grid = document.getElementById('chapterGrid');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
             btn.id = `btn-${i}`;
             btn.className = "aspect-square flex items-center justify-center rounded-lg text-xs font-bold bg-slate-50 border hover:bg-white transition-all";
-            btn.innerText = i;
-            btn.onclick = () => loadChapter(i);
-            grid.appendChild(btn);
+            btn.innerText = i; btn.onclick = () => loadChapter(i); grid.appendChild(btn);
         }
 
         function swapLanguages() {
@@ -171,6 +179,34 @@
             generateQuizQuestion();
         }
 
+        function speakText(text, lang) {
+            if(!text || text === "...") return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            if (lang === 'nl') {
+                const dutchFemale = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen')));
+                if (dutchFemale) u.voice = dutchFemale;
+                u.lang = 'nl-NL'; u.pitch = 1.25;
+            } else {
+                const englishFemale = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria')));
+                if (englishFemale) u.voice = englishFemale;
+                u.lang = 'en-US'; u.pitch = 1.15;
+            }
+            u.rate = 0.85; window.speechSynthesis.speak(u);
+        }
+
+        function conjugate(verb) {
+            const verbLower = verb.toLowerCase();
+            const stem = verbLower.endsWith('en') ? verbLower.slice(0, -2) : verbLower;
+            const pres = [{ p: 'Ik', v: stem }, { p: 'Jij/U', v: stem + 't' }, { p: 'Hij/Zij', v: stem + 't' }, { p: 'Wij/Jullie', v: verbLower }];
+            const past = [{ p: 'Ik', v: stem + 'te' }, { p: 'Wij', v: stem + 'ten' }];
+            document.getElementById('verbName').innerText = verbLower;
+            document.getElementById('presTense').innerHTML = pres.map(r => `<div class="conjugation-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
+            document.getElementById('pastTense').innerHTML = past.map(r => `<div class="conjugation-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
+            document.getElementById('conjugationBox').classList.remove('hidden');
+        }
+
         let timer;
         function debounceTranslate() {
             clearTimeout(timer);
@@ -180,17 +216,24 @@
             output.innerText = "...";
             timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
-                if(!text) return;
+                if(!text) { document.getElementById('conjugationBox').classList.add('hidden'); return; }
+                if (isNlToEn && text.length > 3 && text.endsWith('en')) conjugate(text);
+                else document.getElementById('conjugationBox').classList.add('hidden');
+
                 const pair = isNlToEn ? 'nl|en' : 'en|nl';
                 try {
                     const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`);
                     const data = await res.json();
                     const trans = data.responseData.translatedText;
                     output.innerText = trans;
-                    indicator.classList.remove('opacity-0');
-                    const nlVal = isNlToEn ? text : trans;
-                    const enVal = isNlToEn ? trans : text;
-                    if(!savedWords.find(w => w.nl.toLowerCase() === nlVal.toLowerCase())) {
+                    
+                    const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
+                    const enVal = (isNlToEn ? trans : text).trim();
+
+                    // --- DUPLICATE PREVENTION CHECK ---
+                    const exists = savedWords.some(w => w.nl.toLowerCase().trim() === nlVal);
+                    if(!exists) {
+                        indicator.classList.remove('opacity-0');
                         savedWords.unshift({ nl: nlVal, en: enVal });
                         localStorage.setItem('myWords', JSON.stringify(savedWords));
                         updateSavedUI();
@@ -231,36 +274,6 @@
 
         function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
         function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
-
-        // --- FEMALE VOICE LOGIC ---
-        function speakText(text, lang) {
-            if(!text || text === "..." || text === "") return;
-            window.speechSynthesis.cancel();
-            
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang === 'nl' ? 'nl-NL' : 'en-US';
-            
-            const voices = window.speechSynthesis.getVoices();
-            
-            if (lang === 'nl') {
-                const dutchFemale = voices.find(v => 
-                    v.lang.startsWith('nl') && 
-                    (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen'))
-                );
-                if (dutchFemale) u.voice = dutchFemale;
-                u.pitch = 1.2;
-            } else {
-                const englishFemale = voices.find(v => 
-                    v.lang.startsWith('en') && 
-                    (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria'))
-                );
-                if (englishFemale) u.voice = englishFemale;
-                u.pitch = 1.1;
-            }
-
-            u.rate = 0.85; 
-            window.speechSynthesis.speak(u);
-        }
 
         showSaved();
     </script>
