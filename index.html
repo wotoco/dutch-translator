@@ -19,8 +19,7 @@
         .card-back .inner-nav:hover { color: white; }
         .search-row { height: 50px; border: 1px solid #e2e8f0; }
         .revisit-active { color: #f59e0b !important; }
-        .conj-grid { font-size: 0.75rem; color: #475569; }
-        .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 4px 0; align-items: center; }
+        .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 4px 0; align-items: center; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -36,7 +35,7 @@
                 <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-3 search-row">
                     <span class="text-[9px] font-black text-slate-400 uppercase mr-2" id="label-source">NL</span>
                     <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search..." class="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full outline-none">
-                    <button onclick="playGoogleAudio(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
+                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
                 </div>
                 
                 <button onclick="swapLanguages()" class="hidden md:flex bg-white border w-10 h-10 rounded-full items-center justify-center text-indigo-600 active:scale-90 transition-all"><i class="fas fa-exchange-alt text-xs"></i></button>
@@ -44,11 +43,11 @@
                 <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-3 border border-indigo-100 search-row">
                     <span class="text-[9px] font-black text-indigo-400 uppercase mr-2" id="label-target">EN</span>
                     <div id="targetText" class="text-indigo-700 font-bold text-sm italic truncate w-full">...</div>
-                    <button onclick="playGoogleAudio(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
+                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
                 </div>
             </div>
 
-            <button onclick="toggleConj()" id="conjToggleBtn" class="hidden md:flex bg-slate-100 text-slate-500 px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-200 transition">
+            <button onclick="toggleConj()" id="conjToggleBtn" class="hidden md:flex bg-slate-100 text-slate-500 px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-200 transition">
                 <i class="fas fa-book-open mr-2"></i> Verb Info
             </button>
         </div>
@@ -56,12 +55,12 @@
         <div id="conjugationBox" class="hidden max-w-7xl mx-auto mt-2 p-4 bg-white border-x border-b rounded-b-2xl shadow-inner animate-fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Present (Tegenwoordige tijd)</p>
-                    <div id="presTense" class="conj-grid"></div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Present</p>
+                    <div id="presTense"></div>
                 </div>
                 <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Past (Verleden tijd)</p>
-                    <div id="pastTense" class="conj-grid"></div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Past</p>
+                    <div id="pastTense"></div>
                 </div>
             </div>
         </div>
@@ -72,9 +71,8 @@
             <nav class="flex flex-col gap-4">
                 <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
                 <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit</button>
-                
                 <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Chapters</label>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Chapters</label>
                     <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
                 </div>
             </nav>
@@ -82,8 +80,8 @@
 
         <main class="flex-grow p-4 lg:p-10 flex flex-col items-center">
             <div id="deckArea" class="w-full max-w-xl relative">
-                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-slate-50 transition-all"><i class="fas fa-star"></i></button>
-                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
+                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all"><i class="fas fa-star"></i></button>
+                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
 
                 <div class="relative h-80 w-full">
                     <div class="inner-nav left-0 rounded-l-2xl" onclick="prevCard()"><i class="fas fa-chevron-left"></i></div>
@@ -93,13 +91,13 @@
                         <div id="cardInner" class="card-inner relative">
                             <div class="card-face bg-white shadow-xl">
                                 <p id="flashFront" class="text-3xl font-extrabold text-slate-800">...</p>
-                                <button onclick="event.stopPropagation(); playGoogleAudio(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm"><i class="fas fa-volume-up"></i></button>
-                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-slate-300"><span class="cardCountUI">0/0</span></div>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
+                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-slate-300 cardCountUI">0/0</div>
                             </div>
                             <div class="card-face card-back shadow-xl">
                                 <p id="flashBack" class="text-3xl font-bold italic">...</p>
-                                <button onclick="event.stopPropagation(); playGoogleAudio(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all shadow-sm"><i class="fas fa-volume-up"></i></button>
-                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-indigo-200"><span class="cardCountUI">0/0</span></div>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
+                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-indigo-200 cardCountUI">0/0</div>
                             </div>
                         </div>
                     </div>
@@ -112,36 +110,49 @@
         let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
         let currentMode = 'saved', currentIdx = 0, isNlToEn = true;
 
-        // GOOGLE TRANSLATE AUDIO ENGINE (FORCED NATURAL FEMALE)
-        function playGoogleAudio(text, lang) {
+        // FIXED VOICE ENGINE
+        function speakText(text, lang) {
             if(!text || text === "...") return;
-            const googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-            const audio = new Audio(googleTTSUrl);
-            audio.play();
+            
+            // Cancel current speech
+            window.speechSynthesis.cancel();
+
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            
+            // Priority: Find a Female voice for the specific language
+            const langCode = lang === 'nl' ? 'nl-NL' : 'en-US';
+            const fVoice = voices.find(v => v.lang.includes(langCode) && 
+                (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Online'))) 
+                || voices.find(v => v.lang.includes(langCode));
+
+            if(fVoice) u.voice = fVoice;
+            u.lang = langCode;
+            u.pitch = 1.2; // Higher pitch ensures feminine tone
+            u.rate = 0.9;
+            
+            window.speechSynthesis.speak(u);
         }
 
-        function toggleConj() {
-            const box = document.getElementById('conjugationBox');
-            box.classList.toggle('hidden');
-        }
+        // Initialize voices (Required for some browsers)
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        
+        // Touch to unlock audio (Required for iOS/Mobile)
+        document.body.addEventListener('click', () => {
+            const silent = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(silent);
+        }, { once: true });
+
+        function toggleConj() { document.getElementById('conjugationBox').classList.toggle('hidden'); }
 
         function conjugate(text) {
             if(!isNlToEn || text.length < 3) return;
             document.getElementById('conjToggleBtn').classList.remove('hidden');
             let stem = text.endsWith('en') ? text.slice(0, -2) : text;
             let inf = text.endsWith('en') ? text : text + 'en';
-            
-            const ott = [{p: 'Ik', v: stem}, {p: 'Jij', v: stem+'t'}, {p: 'Hij/Zij', v: stem+'t'}, {p: 'Wij', v: inf}, {p: 'Jullie', v: inf}, {p: 'Zij', v: inf}];
-            const ovt = [{p: 'Ik', v: stem+'te'}, {p: 'Jij', v: stem+'te'}, {p: 'Hij/Zij', v: stem+'te'}, {p: 'Wij', v: stem+'ten'}, {p: 'Jullie', v: stem+'ten'}, {p: 'Zij', v: stem+'ten'}];
-
-            const build = (arr) => arr.map(i => `
-                <div class="conj-item">
-                    <span>${i.p} <span class="font-bold text-indigo-600 ml-1">${i.v}</span></span>
-                    <i class="fas fa-volume-up text-[10px] text-slate-300 cursor-pointer p-2 hover:text-indigo-600" onclick="playGoogleAudio('${i.p} ${i.v}', 'nl')"></i>
-                </div>`).join('');
-            
+            const ott = [{p: 'Ik', v: stem}, {p: 'Jij', v: stem+'t'}, {p: 'Hij/Zij', v: stem+'t'}, {p: 'Wij', v: inf}];
+            const build = (arr) => arr.map(i => `<div class="conj-item"><span>${i.p} <b>${i.v}</b></span><i class="fas fa-volume-up text-slate-300 cursor-pointer p-1 hover:text-indigo-600" onclick="speakText('${i.p} ${i.v}', 'nl')"></i></div>`).join('');
             document.getElementById('presTense').innerHTML = build(ott);
-            document.getElementById('pastTense').innerHTML = build(ovt);
         }
 
         function debounceTranslate() {
@@ -156,9 +167,8 @@
                     const trans = data[0][0][0]; 
                     document.getElementById('targetText').innerText = trans;
                     const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
-                    const enVal = (isNlToEn ? trans : text).trim();
                     if(!myDeck.some(w => w.nl === nlVal)) {
-                        myDeck.unshift({ nl: nlVal, en: enVal, revisit: false });
+                        myDeck.unshift({ nl: nlVal, en: (isNlToEn ? trans : text), revisit: false });
                         localStorage.setItem('myWords', JSON.stringify(myDeck));
                         updateUI();
                     }
@@ -176,22 +186,13 @@
             grid.appendChild(btn);
         }
 
-        function swapLanguages() {
-            isNlToEn = !isNlToEn;
-            document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN';
-            document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL';
-        }
-
+        function swapLanguages() { isNlToEn = !isNlToEn; document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; }
         function changeMode(mode) { currentMode = mode; currentIdx = 0; updateUI(); }
         function getActiveList() { return currentMode === 'saved' ? myDeck : myDeck.filter(w => w.revisit); }
         
         function updateUI() {
             const list = getActiveList();
-            if(!list.length) { 
-                document.getElementById('flashFront').innerText = "Empty"; 
-                document.getElementById('flashBack').innerText = "...";
-                return; 
-            }
+            if(!list.length) { document.getElementById('flashFront').innerText = "Empty"; return; }
             const word = list[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
