@@ -60,12 +60,12 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block italic">Data</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block italic">Data Management</label>
                     <button onclick="exportWords()" class="text-left p-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
-                        <i class="fas fa-file-export"></i> Export Words (.txt)
+                        <i class="fas fa-file-export"></i> Export (.txt)
                     </button>
                     <button onclick="clearAllWords()" class="text-left p-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2">
-                        <i class="fas fa-trash-alt"></i> Clear All Data
+                        <i class="fas fa-trash-alt"></i> Clear All
                     </button>
                 </div>
 
@@ -77,31 +77,12 @@
         </aside>
 
         <main class="flex-grow p-4 md:p-10">
-            <div id="conjugationBox" class="hidden mb-10 bg-white rounded-3xl p-6 border-2 border-indigo-50 shadow-sm">
-                <div class="flex items-center gap-2 mb-4">
-                    <i class="fas fa-terminal text-indigo-500"></i>
-                    <h3 class="font-black text-slate-800 uppercase text-xs tracking-widest">Verb Conjugator: <span id="verbName" class="text-indigo-600 lowercase italic">lopen</span></h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 mb-2">PRESENT (OTT)</p>
-                        <div id="presTense" class="bg-slate-50 rounded-xl p-4"></div>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 mb-2">PAST (OVT)</p>
-                        <div id="pastTense" class="bg-slate-50 rounded-xl p-4"></div>
-                    </div>
-                </div>
-            </div>
-
             <div id="savedSection">
                 <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight italic">Your Learning Deck</h2>
-                
                 <div class="relative w-full h-80 mb-8">
                     <button onclick="deleteCurrentWord()" class="absolute -top-4 -right-4 z-10 bg-red-500 text-white w-10 h-10 rounded-full shadow-lg hover:bg-red-600 transition-all active:scale-90 flex items-center justify-center">
                         <i class="fas fa-trash"></i>
                     </button>
-
                     <div class="w-full h-full cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
                         <div id="cardInner" class="card-inner w-full h-full relative">
                             <div class="card-front bg-white border-2 border-slate-200 shadow-xl">
@@ -117,7 +98,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="flex justify-center gap-8 items-center">
                     <button onclick="prevCard()" class="text-slate-300 hover:text-indigo-600 transition"><i class="fas fa-chevron-left fa-2x"></i></button>
                     <div class="px-6 py-2 bg-white border rounded-full font-bold text-slate-400 text-sm shadow-sm"><span id="cardCounter">0/0</span></div>
@@ -148,15 +128,10 @@
         const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
         
         let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
-        // Unique check
-        savedWords = savedWords.filter((word, index, self) =>
-            index === self.findIndex((t) => t.nl.toLowerCase().trim() === word.nl.toLowerCase().trim())
-        );
         localStorage.setItem('myWords', JSON.stringify(savedWords));
 
         let currentIdx = 0; let currentQuizWord = null; let isNlToEn = true;
 
-        // Grid Init
         const grid = document.getElementById('chapterGrid');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
@@ -199,55 +174,7 @@
             generateQuizQuestion();
         }
 
-        function speakText(text, lang) {
-            if(!text || text === "...") return;
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            if (lang === 'nl') {
-                const dutchFemale = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen')));
-                if (dutchFemale) u.voice = dutchFemale;
-                u.lang = 'nl-NL'; u.pitch = 1.25;
-            } else {
-                const englishFemale = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria')));
-                if (englishFemale) u.voice = englishFemale;
-                u.lang = 'en-US'; u.pitch = 1.15;
-            }
-            u.rate = 0.85; window.speechSynthesis.speak(u);
-        }
-
-        // --- EXPORT FUNCTION ---
-        function exportWords() {
-            if(savedWords.length === 0) return alert("No words to export!");
-            const content = savedWords.map(w => `${w.nl.toUpperCase()} : ${w.en}`).join('\n');
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `DutchEveryday_Export_${new Date().toLocaleDateString()}.txt`;
-            a.click();
-        }
-
-        // --- DELETE FUNCTIONS ---
-        function deleteCurrentWord() {
-            if(savedWords.length === 0) return;
-            if(confirm(`Delete "${savedWords[currentIdx].nl}" from your deck?`)) {
-                savedWords.splice(currentIdx, 1);
-                localStorage.setItem('myWords', JSON.stringify(savedWords));
-                if(currentIdx >= savedWords.length) currentIdx = Math.max(0, savedWords.length - 1);
-                updateSavedUI();
-            }
-        }
-
-        function clearAllWords() {
-            if(confirm("DANGER: This will permanently delete ALL your saved words. Continue?")) {
-                savedWords = [];
-                localStorage.setItem('myWords', JSON.stringify(savedWords));
-                currentIdx = 0;
-                updateSavedUI();
-            }
-        }
-
+        // --- UPDATED GOOGLE TRANSLATE LOGIC ---
         let timer;
         function debounceTranslate() {
             clearTimeout(timer);
@@ -255,15 +182,21 @@
             const indicator = document.getElementById('saveIndicator');
             indicator.classList.add('opacity-0');
             output.innerText = "...";
+
             timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
                 if(!text) return;
 
-                const pair = isNlToEn ? 'nl|en' : 'en|nl';
+                const sl = isNlToEn ? 'nl' : 'en';
+                const tl = isNlToEn ? 'en' : 'nl';
+                
+                // Using Google Translate free endpoint (Script based)
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+
                 try {
-                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${pair}`);
+                    const res = await fetch(url);
                     const data = await res.json();
-                    const trans = data.responseData.translatedText;
+                    const trans = data[0][0][0];
                     output.innerText = trans;
                     
                     const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
@@ -276,15 +209,47 @@
                         localStorage.setItem('myWords', JSON.stringify(savedWords));
                         updateSavedUI();
                     }
-                } catch(e) {}
+                } catch(e) {
+                    output.innerText = "Error";
+                }
             }, 800);
         }
 
+        // --- MANAGEMENT FUNCTIONS ---
+        function deleteCurrentWord() {
+            if(savedWords.length === 0) return;
+            if(confirm(`Delete "${savedWords[currentIdx].nl}"?`)) {
+                savedWords.splice(currentIdx, 1);
+                localStorage.setItem('myWords', JSON.stringify(savedWords));
+                if(currentIdx >= savedWords.length) currentIdx = Math.max(0, savedWords.length - 1);
+                updateSavedUI();
+            }
+        }
+
+        function exportWords() {
+            if(savedWords.length === 0) return alert("No words to export!");
+            const content = savedWords.map(w => `${w.nl.toUpperCase()} : ${w.en}`).join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `DutchEveryday_Export.txt`;
+            a.click();
+        }
+
+        function clearAllWords() {
+            if(confirm("DANGER: Delete ALL saved words?")) {
+                savedWords = [];
+                localStorage.setItem('myWords', JSON.stringify(savedWords));
+                currentIdx = 0;
+                updateSavedUI();
+            }
+        }
+
         function updateSavedUI() {
-            const display = document.getElementById('savedSection');
             if(savedWords.length === 0) {
                 document.getElementById('flashFront').innerText = "Empty Deck";
-                document.getElementById('flashBack').innerText = "Translate words to add them!";
+                document.getElementById('flashBack').innerText = "...";
                 document.getElementById('cardCounter').innerText = "0/0";
                 return;
             }
@@ -318,6 +283,23 @@
 
         function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
         function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
+
+        function speakText(text, lang) {
+            if(!text || text === "...") return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            if (lang === 'nl') {
+                const dutchFemale = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen')));
+                if (dutchFemale) u.voice = dutchFemale;
+                u.lang = 'nl-NL'; u.pitch = 1.25;
+            } else {
+                const englishFemale = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria')));
+                if (englishFemale) u.voice = englishFemale;
+                u.lang = 'en-US'; u.pitch = 1.15;
+            }
+            u.rate = 0.85; window.speechSynthesis.speak(u);
+        }
 
         showSaved();
     </script>
