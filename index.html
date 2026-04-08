@@ -13,7 +13,7 @@
         .flipped { transform: rotateY(180deg); }
         .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
         .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
-        .conjugation-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        .conj-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 6px 0; font-size: 0.85rem; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
@@ -28,8 +28,7 @@
 
                 <div class="flex-1 w-full flex items-center bg-slate-100 rounded-xl border focus-within:border-indigo-400 transition-all overflow-hidden px-3">
                     <span id="label-source" class="text-[10px] font-black text-slate-400 mr-2 uppercase">NL</span>
-                    <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Typ hier..." 
-                           class="bg-transparent border-none focus:ring-0 text-base font-medium w-full py-3 outline-none">
+                    <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Typ hier..." class="bg-transparent border-none focus:ring-0 text-base font-medium w-full py-3 outline-none">
                     <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-400 hover:text-indigo-600 p-2"><i class="fas fa-volume-up"></i></button>
                 </div>
 
@@ -60,23 +59,35 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block italic">Data Management</label>
-                    <button onclick="exportWords()" class="text-left p-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
-                        <i class="fas fa-file-export"></i> Export (.txt)
-                    </button>
-                    <button onclick="clearAllWords()" class="text-left p-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2">
-                        <i class="fas fa-trash-alt"></i> Clear All
-                    </button>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block italic">Data</label>
+                    <button onclick="exportWords()" class="text-left p-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-2"><i class="fas fa-file-export"></i> Export (.txt)</button>
+                    <button onclick="clearAllWords()" class="text-left p-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2"><i class="fas fa-trash-alt"></i> Clear All</button>
                 </div>
 
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic">Chapters</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic text-center md:text-left">Chapters</label>
                     <div id="chapterGrid" class="grid grid-cols-6 md:grid-cols-3 lg:grid-cols-4 gap-2"></div>
                 </div>
             </nav>
         </aside>
 
         <main class="flex-grow p-4 md:p-10">
+            <div id="conjugationBox" class="hidden mb-10 bg-white rounded-3xl p-6 border border-indigo-100 shadow-sm">
+                <h3 class="font-black text-xs uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                    <i class="fas fa-book text-indigo-500"></i> Verb: <span id="verbName" class="text-indigo-600 lowercase italic">lopen</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Present (OTT)</p>
+                        <div id="presTense" class="bg-slate-50 rounded-xl p-4"></div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Past (OVT)</p>
+                        <div id="pastTense" class="bg-slate-50 rounded-xl p-4"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="savedSection">
                 <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight italic">Your Learning Deck</h2>
                 <div class="relative w-full h-80 mb-8">
@@ -110,8 +121,7 @@
                 <div class="bg-white p-8 rounded-3xl border-2 border-orange-100 shadow-xl text-center max-w-sm mx-auto">
                     <button onclick="speakText(currentQuizWord.nl, 'nl')" class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full mx-auto mb-4 flex items-center justify-center hover:bg-orange-100 transition"><i class="fas fa-volume-up"></i></button>
                     <h3 id="quizQuestion" class="text-3xl font-black text-slate-800 mb-6">?</h3>
-                    <input type="text" id="quizInput" onkeydown="if(event.key === 'Enter') checkQuizAnswer()"
-                           class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-3 px-4 text-center font-bold mb-4 outline-none focus:border-orange-400" placeholder="Type translation...">
+                    <input type="text" id="quizInput" onkeydown="if(event.key === 'Enter') checkQuizAnswer()" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-3 px-4 text-center font-bold mb-4 outline-none focus:border-orange-400" placeholder="Type translation...">
                     <div id="quizFeedback" class="h-4 text-xs font-bold mb-4"></div>
                     <button onclick="checkQuizAnswer()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-orange-100">Check Answer</button>
                 </div>
@@ -126,10 +136,7 @@
 
     <script>
         const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
-        
         let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
-        localStorage.setItem('myWords', JSON.stringify(savedWords));
-
         let currentIdx = 0; let currentQuizWord = null; let isNlToEn = true;
 
         const grid = document.getElementById('chapterGrid');
@@ -146,6 +153,7 @@
             document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL';
             document.getElementById('sourceText').value = '';
             document.getElementById('targetText').innerText = '...';
+            document.getElementById('conjugationBox').classList.add('hidden');
         }
 
         function switchView(viewId) {
@@ -174,7 +182,30 @@
             generateQuizQuestion();
         }
 
-        // --- UPDATED GOOGLE TRANSLATE LOGIC ---
+        // --- CONJUGATION LOGIC ---
+        function conjugateDutch(verb) {
+            const verbLower = verb.toLowerCase().trim();
+            const stem = verbLower.endsWith('en') ? verbLower.slice(0, -2) : verbLower;
+            
+            // Standard weak verb rules (for display/study purposes)
+            const pres = [
+                { p: 'Ik', v: stem },
+                { p: 'Jij/U', v: stem + 't' },
+                { p: 'Hij/Zij', v: stem + 't' },
+                { p: 'Wij/Jullie', v: verbLower }
+            ];
+            const past = [
+                { p: 'Ik', v: stem + 'te/de' },
+                { p: 'Wij', v: stem + 'ten/den' }
+            ];
+
+            document.getElementById('verbName').innerText = verbLower;
+            document.getElementById('presTense').innerHTML = pres.map(r => `<div class="conj-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
+            document.getElementById('pastTense').innerHTML = past.map(r => `<div class="conj-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
+            document.getElementById('conjugationBox').classList.remove('hidden');
+        }
+
+        // --- GOOGLE TRANSLATE LOGIC ---
         let timer;
         function debounceTranslate() {
             clearTimeout(timer);
@@ -185,12 +216,14 @@
 
             timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
-                if(!text) return;
+                if(!text) { document.getElementById('conjugationBox').classList.add('hidden'); return; }
+
+                // Conjugate if Dutch and ends in 'en'
+                if(isNlToEn && text.length > 3 && text.endsWith('en')) conjugateDutch(text);
+                else document.getElementById('conjugationBox').classList.add('hidden');
 
                 const sl = isNlToEn ? 'nl' : 'en';
                 const tl = isNlToEn ? 'en' : 'nl';
-                
-                // Using Google Translate free endpoint (Script based)
                 const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
 
                 try {
@@ -202,47 +235,41 @@
                     const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
                     const enVal = (isNlToEn ? trans : text).trim();
 
-                    const exists = savedWords.some(w => w.nl.toLowerCase().trim() === nlVal);
-                    if(!exists) {
+                    if(!savedWords.some(w => w.nl.toLowerCase().trim() === nlVal)) {
                         indicator.classList.remove('opacity-0');
                         savedWords.unshift({ nl: nlVal, en: enVal });
                         localStorage.setItem('myWords', JSON.stringify(savedWords));
                         updateSavedUI();
                     }
-                } catch(e) {
-                    output.innerText = "Error";
-                }
+                } catch(e) { output.innerText = "Error"; }
             }, 800);
         }
 
-        // --- MANAGEMENT FUNCTIONS ---
+        // --- MANAGEMENT ---
         function deleteCurrentWord() {
             if(savedWords.length === 0) return;
             if(confirm(`Delete "${savedWords[currentIdx].nl}"?`)) {
                 savedWords.splice(currentIdx, 1);
                 localStorage.setItem('myWords', JSON.stringify(savedWords));
-                if(currentIdx >= savedWords.length) currentIdx = Math.max(0, savedWords.length - 1);
+                currentIdx = Math.max(0, currentIdx - 1);
                 updateSavedUI();
             }
         }
 
         function exportWords() {
-            if(savedWords.length === 0) return alert("No words to export!");
+            if(savedWords.length === 0) return alert("No words!");
             const content = savedWords.map(w => `${w.nl.toUpperCase()} : ${w.en}`).join('\n');
             const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `DutchEveryday_Export.txt`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `DutchEveryday_List.txt`;
             a.click();
         }
 
         function clearAllWords() {
-            if(confirm("DANGER: Delete ALL saved words?")) {
-                savedWords = [];
-                localStorage.setItem('myWords', JSON.stringify(savedWords));
-                currentIdx = 0;
-                updateSavedUI();
+            if(confirm("Permanently delete ALL words?")) {
+                savedWords = []; localStorage.setItem('myWords', "[]");
+                currentIdx = 0; updateSavedUI();
             }
         }
 
@@ -258,6 +285,23 @@
             document.getElementById('flashBack').innerText = word.en;
             document.getElementById('cardCounter').innerText = `${currentIdx + 1}/${savedWords.length}`;
             document.getElementById('cardInner').classList.remove('flipped');
+        }
+
+        function speakText(text, lang) {
+            if(!text || text === "...") return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            if (lang === 'nl') {
+                const df = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen')));
+                if (df) u.voice = df;
+                u.lang = 'nl-NL'; u.pitch = 1.25;
+            } else {
+                const ef = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha')));
+                if (ef) u.voice = ef;
+                u.lang = 'en-US'; u.pitch = 1.15;
+            }
+            u.rate = 0.85; window.speechSynthesis.speak(u);
         }
 
         function generateQuizQuestion() {
@@ -283,23 +327,6 @@
 
         function nextCard() { if(currentIdx < savedWords.length - 1) { currentIdx++; updateSavedUI(); } }
         function prevCard() { if(currentIdx > 0) { currentIdx--; updateSavedUI(); } }
-
-        function speakText(text, lang) {
-            if(!text || text === "...") return;
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            if (lang === 'nl') {
-                const dutchFemale = voices.find(v => v.lang.startsWith('nl') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Ellen')));
-                if (dutchFemale) u.voice = dutchFemale;
-                u.lang = 'nl-NL'; u.pitch = 1.25;
-            } else {
-                const englishFemale = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Victoria')));
-                if (englishFemale) u.voice = englishFemale;
-                u.lang = 'en-US'; u.pitch = 1.15;
-            }
-            u.rate = 0.85; window.speechSynthesis.speak(u);
-        }
 
         showSaved();
     </script>
