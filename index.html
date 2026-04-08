@@ -58,6 +58,17 @@
                         <i class="fas fa-lightbulb"></i> QUIZ
                     </button>
                 </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block italic">Data</label>
+                    <button onclick="exportWords()" class="text-left p-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
+                        <i class="fas fa-file-export"></i> Export Words (.txt)
+                    </button>
+                    <button onclick="clearAllWords()" class="text-left p-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2">
+                        <i class="fas fa-trash-alt"></i> Clear All Data
+                    </button>
+                </div>
+
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block italic">Chapters</label>
                     <div id="chapterGrid" class="grid grid-cols-6 md:grid-cols-3 lg:grid-cols-4 gap-2"></div>
@@ -85,20 +96,28 @@
 
             <div id="savedSection">
                 <h2 class="text-2xl font-black text-slate-800 mb-6 tracking-tight italic">Your Learning Deck</h2>
-                <div class="relative w-full h-80 cursor-pointer mb-8" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
-                    <div id="cardInner" class="card-inner w-full h-full relative">
-                        <div class="card-front bg-white border-2 border-slate-200 shadow-xl">
-                            <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-4">Dutch</span>
-                            <p id="flashFront" class="text-3xl font-black text-slate-800">...</p>
-                            <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 text-indigo-400 hover:text-indigo-600"><i class="fas fa-volume-up text-xl"></i></button>
-                        </div>
-                        <div class="card-back shadow-2xl">
-                            <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-4">English</span>
-                            <p id="flashBack" class="text-3xl font-bold italic">...</p>
-                            <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 text-white/50 hover:text-white"><i class="fas fa-volume-up text-xl"></i></button>
+                
+                <div class="relative w-full h-80 mb-8">
+                    <button onclick="deleteCurrentWord()" class="absolute -top-4 -right-4 z-10 bg-red-500 text-white w-10 h-10 rounded-full shadow-lg hover:bg-red-600 transition-all active:scale-90 flex items-center justify-center">
+                        <i class="fas fa-trash"></i>
+                    </button>
+
+                    <div class="w-full h-full cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
+                        <div id="cardInner" class="card-inner w-full h-full relative">
+                            <div class="card-front bg-white border-2 border-slate-200 shadow-xl">
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-4">Dutch</span>
+                                <p id="flashFront" class="text-3xl font-black text-slate-800">...</p>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 text-indigo-400 hover:text-indigo-600"><i class="fas fa-volume-up text-xl"></i></button>
+                            </div>
+                            <div class="card-back shadow-2xl">
+                                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-4">English</span>
+                                <p id="flashBack" class="text-3xl font-bold italic">...</p>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 text-white/50 hover:text-white"><i class="fas fa-volume-up text-xl"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="flex justify-center gap-8 items-center">
                     <button onclick="prevCard()" class="text-slate-300 hover:text-indigo-600 transition"><i class="fas fa-chevron-left fa-2x"></i></button>
                     <div class="px-6 py-2 bg-white border rounded-full font-bold text-slate-400 text-sm shadow-sm"><span id="cardCounter">0/0</span></div>
@@ -128,15 +147,16 @@
     <script>
         const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
         
-        // --- CLEAN DUPLICATES ON STARTUP ---
-        let rawWords = JSON.parse(localStorage.getItem('myWords')) || [];
-        let savedWords = rawWords.filter((word, index, self) =>
+        let savedWords = JSON.parse(localStorage.getItem('myWords')) || [];
+        // Unique check
+        savedWords = savedWords.filter((word, index, self) =>
             index === self.findIndex((t) => t.nl.toLowerCase().trim() === word.nl.toLowerCase().trim())
         );
         localStorage.setItem('myWords', JSON.stringify(savedWords));
 
         let currentIdx = 0; let currentQuizWord = null; let isNlToEn = true;
 
+        // Grid Init
         const grid = document.getElementById('chapterGrid');
         for(let i=1; i<=18; i++) {
             const btn = document.createElement('button');
@@ -196,15 +216,36 @@
             u.rate = 0.85; window.speechSynthesis.speak(u);
         }
 
-        function conjugate(verb) {
-            const verbLower = verb.toLowerCase();
-            const stem = verbLower.endsWith('en') ? verbLower.slice(0, -2) : verbLower;
-            const pres = [{ p: 'Ik', v: stem }, { p: 'Jij/U', v: stem + 't' }, { p: 'Hij/Zij', v: stem + 't' }, { p: 'Wij/Jullie', v: verbLower }];
-            const past = [{ p: 'Ik', v: stem + 'te' }, { p: 'Wij', v: stem + 'ten' }];
-            document.getElementById('verbName').innerText = verbLower;
-            document.getElementById('presTense').innerHTML = pres.map(r => `<div class="conjugation-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
-            document.getElementById('pastTense').innerHTML = past.map(r => `<div class="conjugation-row"><span>${r.p}</span><span class="font-bold text-indigo-600">${r.v}</span></div>`).join('');
-            document.getElementById('conjugationBox').classList.remove('hidden');
+        // --- EXPORT FUNCTION ---
+        function exportWords() {
+            if(savedWords.length === 0) return alert("No words to export!");
+            const content = savedWords.map(w => `${w.nl.toUpperCase()} : ${w.en}`).join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `DutchEveryday_Export_${new Date().toLocaleDateString()}.txt`;
+            a.click();
+        }
+
+        // --- DELETE FUNCTIONS ---
+        function deleteCurrentWord() {
+            if(savedWords.length === 0) return;
+            if(confirm(`Delete "${savedWords[currentIdx].nl}" from your deck?`)) {
+                savedWords.splice(currentIdx, 1);
+                localStorage.setItem('myWords', JSON.stringify(savedWords));
+                if(currentIdx >= savedWords.length) currentIdx = Math.max(0, savedWords.length - 1);
+                updateSavedUI();
+            }
+        }
+
+        function clearAllWords() {
+            if(confirm("DANGER: This will permanently delete ALL your saved words. Continue?")) {
+                savedWords = [];
+                localStorage.setItem('myWords', JSON.stringify(savedWords));
+                currentIdx = 0;
+                updateSavedUI();
+            }
         }
 
         let timer;
@@ -216,9 +257,7 @@
             output.innerText = "...";
             timer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
-                if(!text) { document.getElementById('conjugationBox').classList.add('hidden'); return; }
-                if (isNlToEn && text.length > 3 && text.endsWith('en')) conjugate(text);
-                else document.getElementById('conjugationBox').classList.add('hidden');
+                if(!text) return;
 
                 const pair = isNlToEn ? 'nl|en' : 'en|nl';
                 try {
@@ -230,7 +269,6 @@
                     const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
                     const enVal = (isNlToEn ? trans : text).trim();
 
-                    // --- DUPLICATE PREVENTION CHECK ---
                     const exists = savedWords.some(w => w.nl.toLowerCase().trim() === nlVal);
                     if(!exists) {
                         indicator.classList.remove('opacity-0');
@@ -243,7 +281,13 @@
         }
 
         function updateSavedUI() {
-            if(savedWords.length === 0) return;
+            const display = document.getElementById('savedSection');
+            if(savedWords.length === 0) {
+                document.getElementById('flashFront').innerText = "Empty Deck";
+                document.getElementById('flashBack').innerText = "Translate words to add them!";
+                document.getElementById('cardCounter').innerText = "0/0";
+                return;
+            }
             const word = savedWords[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
