@@ -3,241 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Dutch Everyday - A2 Study Hub</title>
+    <title>Dutch Everyday</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         .active-nav { background: #4f46e5 !important; color: white !important; font-weight: 700; }
-        .card-inner { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .card-inner { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; height: 100%; width: 100%; }
         .flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
+        .card-face { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
         .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
-        .inner-counter { position: absolute; bottom: 1.5rem; right: 2rem; font-size: 0.75rem; font-weight: 800; color: #94a3b8; }
-        .card-back .inner-counter { color: rgba(255, 255, 255, 0.6); }
-        .search-row { height: 56px; border: 1px solid #e2e8f0; }
-        .search-row:focus-within { border-color: #4f46e5; }
+        .inner-nav { position: absolute; top: 0; bottom: 0; width: 60px; display: flex; align-items: center; justify-content: center; z-index: 20; color: #cbd5e1; transition: color 0.2s; cursor: pointer; }
+        .inner-nav:hover { color: #4f46e5; }
+        .card-back .inner-nav:hover { color: white; }
+        .search-row { height: 50px; border: 1px solid #e2e8f0; }
         .revisit-active { color: #f59e0b !important; }
     </style>
 </head>
 <body>
 
-    <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div class="max-w-6xl mx-auto p-4 flex flex-col items-center gap-6">
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-4xl">🇳🇱</span>
-                <h1 class="text-2xl font-black tracking-tighter italic text-slate-800">Dutch<span class="text-indigo-600">Everyday</span></h1>
+    <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4">
+            <div class="flex items-center gap-2 self-start md:self-center">
+                <span class="text-2xl">🇳🇱</span>
+                <h1 class="text-lg font-black tracking-tighter italic text-slate-800">Dutch<span class="text-indigo-600">Everyday</span></h1>
             </div>
 
-            <div class="w-full flex flex-col md:flex-row items-center gap-3">
-                <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-4 search-row transition-all">
-                    <span class="text-[10px] font-black text-slate-400 uppercase mr-3">Dict</span>
-                    <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search word or verb..." class="bg-transparent border-none focus:ring-0 text-base font-semibold w-full outline-none">
-                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-400 hover:text-indigo-600 p-2"><i class="fas fa-volume-up"></i></button>
+            <div class="w-full flex flex-col md:flex-row items-center gap-2 flex-grow">
+                <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-3 search-row">
+                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2">NL</span>
+                    <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search..." class="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full outline-none">
+                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
                 </div>
-                <button onclick="swapLanguages()" class="bg-white border w-12 h-12 rounded-full flex items-center justify-center text-indigo-600 hover:shadow-md transition-all active:scale-90"><i class="fas fa-exchange-alt"></i></button>
-                <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-4 border border-indigo-100 search-row">
-                    <span class="text-[10px] font-black text-indigo-400 uppercase mr-3 text-right">Eng</span>
-                    <div id="targetText" class="text-indigo-700 font-bold text-base italic truncate w-full">...</div>
-                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 p-2"><i class="fas fa-volume-up"></i></button>
-                    <i class="fas fa-check-circle text-indigo-400 text-sm ml-1 opacity-0 transition-opacity" id="saveIndicator"></i>
+                <button onclick="swapLanguages()" class="hidden md:flex bg-white border w-10 h-10 rounded-full items-center justify-center text-indigo-600 active:scale-90 transition-all"><i class="fas fa-exchange-alt text-xs"></i></button>
+                <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-3 border border-indigo-100 search-row">
+                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2">EN</span>
+                    <div id="targetText" class="text-indigo-700 font-bold text-sm italic truncate w-full">...</div>
+                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
+                    <i class="fas fa-check-circle text-indigo-400 text-xs ml-1 opacity-0 transition-opacity" id="saveIndicator"></i>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row min-h-screen">
-        <aside class="w-full md:w-64 bg-white border-r border-slate-100 p-6 sticky top-[180px] h-fit">
-            <nav class="flex flex-col gap-6">
-                <div class="bg-indigo-600 rounded-2xl p-5 text-white shadow-lg shadow-indigo-200">
-                    <label class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest block mb-2">Study Progress</label>
-                    <div class="text-3xl font-black mb-1"><span id="metricCount">0</span> <span class="text-indigo-300 text-sm font-medium">/ 2000</span></div>
-                    <div class="w-full bg-indigo-800 h-1.5 rounded-full overflow-hidden mb-3">
-                        <div id="metricBar" class="bg-white h-full transition-all duration-700" style="width: 0%"></div>
-                    </div>
-                    <div class="text-[10px] flex justify-between font-bold text-indigo-200">
-                        <span>MASTERY GOAL</span>
-                        <span id="metricPercent">0%</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-2">
-                    <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-sm font-bold flex items-center gap-3 active-nav"><i class="fas fa-layer-group w-5"></i> My Search Deck</button>
-                    <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-sm font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all">
-                        <i class="fas fa-graduation-cap w-5"></i> A2 Required List
-                    </button>
-                    <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-sm font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all">
-                        <i class="fas fa-star w-5 text-amber-500"></i> Words to Revisit
-                    </button>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-56 bg-white border-r border-slate-100 p-4 sticky top-[80px] h-fit">
+            <nav class="flex flex-col gap-4">
+                <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
+                <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap"></i> A2 List</button>
+                <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit</button>
+                
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Chapters</label>
+                    <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
                 </div>
             </nav>
         </aside>
 
-        <main class="flex-grow p-6 lg:p-10 flex flex-col items-center">
-            
-            <div id="conjugationBox" class="hidden w-full max-w-xl mb-10 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div><p class="text-[10px] font-extrabold text-slate-400 mb-2 uppercase">Present</p><div id="presTense" class="space-y-1"></div></div>
-                    <div><p class="text-[10px] font-extrabold text-slate-400 mb-2 uppercase">Past</p><div id="pastTense" class="space-y-1"></div></div>
-                </div>
-            </div>
+        <main class="flex-grow p-4 lg:p-10 flex flex-col items-center">
+            <div id="deckArea" class="w-full max-w-xl relative group">
+                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-slate-50 transition-all"><i class="fas fa-star"></i></button>
+                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
 
-            <div id="deckArea" class="w-full max-w-xl">
-                <div class="relative h-96 mb-10 group">
-                    <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 -left-3 z-10 bg-white border border-slate-200 text-slate-300 w-12 h-12 rounded-full shadow-md flex items-center justify-center hover:bg-slate-50 transition-all text-xl">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <button onclick="deleteCurrentWord()" class="absolute -top-3 -right-3 z-10 bg-white border border-slate-200 text-red-400 w-12 h-12 rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-all">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                <div class="relative h-80 w-full">
+                    <div class="inner-nav left-0 rounded-l-2xl" onclick="prevCard()"><i class="fas fa-chevron-left"></i></div>
+                    <div class="inner-nav right-0 rounded-r-2xl" onclick="nextCard()"><i class="fas fa-chevron-right"></i></div>
 
                     <div class="w-full h-full cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
-                        <div id="cardInner" class="card-inner w-full h-full relative">
-                            <div class="card-front bg-white shadow-xl">
-                                <span id="deckLabel" class="absolute top-8 left-8 text-[10px] font-black text-indigo-400 uppercase tracking-widest">My Deck</span>
-                                <p id="flashFront" class="text-4xl font-extrabold text-slate-800">Search a word</p>
-                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-8 w-14 h-14 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-all"><i class="fas fa-volume-up text-lg"></i></button>
-                                <div class="inner-counter"><span class="cardCountUI">0/0</span></div>
+                        <div id="cardInner" class="card-inner relative">
+                            <div class="card-face bg-white shadow-xl">
+                                <span id="deckLabel" class="absolute top-6 text-[10px] font-black text-indigo-400 uppercase tracking-widest">My Deck</span>
+                                <p id="flashFront" class="text-3xl font-extrabold text-slate-800">...</p>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-all"><i class="fas fa-volume-up"></i></button>
+                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-slate-300"><span class="cardCountUI">0/0</span></div>
                             </div>
-                            <div class="card-back shadow-xl">
-                                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-6">Translation</span>
-                                <p id="flashBack" class="text-4xl font-bold italic">...</p>
-                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-8 w-14 h-14 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all"><i class="fas fa-volume-up text-lg"></i></button>
-                                <div class="inner-counter"><span class="cardCountUI">0/0</span></div>
+                            <div class="card-face card-back shadow-xl">
+                                <span class="text-[10px] font-bold text-indigo-200 uppercase tracking-widest absolute top-6">Translation</span>
+                                <p id="flashBack" class="text-3xl font-bold italic">...</p>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-all"><i class="fas fa-volume-up"></i></button>
+                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-indigo-200"><span class="cardCountUI">0/0</span></div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="flex justify-center gap-12">
-                    <button onclick="prevCard()" class="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-90"><i class="fas fa-chevron-left fa-xl"></i></button>
-                    <button onclick="nextCard()" class="w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 shadow-sm transition-all active:scale-90"><i class="fas fa-chevron-right fa-xl"></i></button>
+            <div id="conjugationBox" class="hidden w-full max-w-xl mt-8 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm animate-fade-in">
+                <div class="grid grid-cols-2 gap-8 text-center">
+                    <div><p class="text-[10px] font-black text-slate-400 mb-2 uppercase">Present</p><div id="presTense" class="text-xs space-y-1"></div></div>
+                    <div><p class="text-[10px] font-black text-slate-400 mb-2 uppercase">Past</p><div id="pastTense" class="text-xs space-y-1"></div></div>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        // FULL A2 CORE LIST (Partial sample - expand with all 1200 words)
+        // FULL A2 LIST STRUCTURE (Expand to 1200)
         const a2List = [
-            {nl: "afspraak", en: "appointment", revisit: false},
-            {nl: "belangrijk", en: "important", revisit: false},
-            {nl: "begrijpen", en: "to understand", revisit: false},
-            {nl: "boodschappen", en: "groceries", revisit: false},
-            {nl: "ervaring", en: "experience", revisit: false},
-            {nl: "gezondheid", en: "health", revisit: false},
-            {nl: "onderwijs", en: "education", revisit: false},
-            {nl: "rekening", en: "bill/invoice", revisit: false}
-        ];
+            {nl: "afspraak", en: "appointment"}, {nl: "belangrijk", en: "important"}, {nl: "begrijpen", en: "to understand"},
+            {nl: "boodschappen", en: "groceries"}, {nl: "ervaring", en: "experience"}, {nl: "gezondheid", en: "health"},
+            {nl: "onderwijs", en: "education"}, {nl: "rekening", en: "bill/invoice"}, {nl: "toekomst", en: "future"},
+            {nl: "vrijheid", en: "freedom"}, {nl: "omgeving", en: "environment"}, {nl: "overheid", en: "government"}
+            // Add more words here...
+        ].map(w => ({...w, revisit: false}));
 
+        const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
         let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentMode = 'saved'; // saved, a2, revisit
+        let currentMode = 'saved';
         let currentIdx = 0;
         let isNlToEn = true;
 
+        // Init Grid
+        const grid = document.getElementById('chapterGrid');
+        for(let i=1; i<=18; i++) {
+            const btn = document.createElement('button');
+            btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
+            btn.innerText = i; btn.onclick = () => window.open(`https://quizlet.com/${chapterData[i]}/flashcards`, '_blank');
+            grid.appendChild(btn);
+        }
+
         function changeMode(mode) {
-            currentMode = mode;
-            currentIdx = 0;
+            currentMode = mode; currentIdx = 0;
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
             document.getElementById('nav-' + mode).classList.add('active-nav');
-            document.getElementById('deckLabel').innerText = mode === 'a2' ? 'A2 Exam Core' : (mode === 'revisit' ? 'Priority Review' : 'My Deck');
+            document.getElementById('deckLabel').innerText = mode === 'a2' ? 'A2 Exam List' : (mode === 'revisit' ? 'Priority' : 'My Deck');
             updateUI();
         }
 
         function getActiveList() {
             if (currentMode === 'a2') return a2List;
-            if (currentMode === 'revisit') return myDeck.concat(a2List).filter(w => w.revisit);
+            if (currentMode === 'revisit') return [...myDeck, ...a2List].filter(w => w.revisit);
             return myDeck;
         }
 
         function updateUI() {
             const list = getActiveList();
-            const count = list.length;
-            
-            // Metrics
-            document.getElementById('metricCount').innerText = myDeck.length;
-            document.getElementById('metricBar').style.width = Math.min((myDeck.length / 2000) * 100, 100) + '%';
-            document.getElementById('metricPercent').innerText = Math.round((myDeck.length / 2000) * 100) + '%';
-
-            if(count === 0) {
+            const countLabels = document.querySelectorAll('.cardCountUI');
+            if(list.length === 0) {
                 document.getElementById('flashFront').innerText = "Empty List";
                 document.getElementById('flashBack').innerText = "...";
-                document.querySelectorAll('.cardCountUI').forEach(el => el.innerText = "0/0");
+                countLabels.forEach(el => el.innerText = "0/0");
                 document.getElementById('revisitBtn').classList.remove('revisit-active');
                 return;
             }
-
             const word = list[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
-            document.querySelectorAll('.cardCountUI').forEach(el => el.innerText = `${currentIdx + 1}/${count}`);
-            
-            // Revisit Status
-            const revisitBtn = document.getElementById('revisitBtn');
-            word.revisit ? revisitBtn.classList.add('revisit-active') : revisitBtn.classList.remove('revisit-active');
-            
+            countLabels.forEach(el => el.innerText = `${currentIdx + 1}/${list.length}`);
+            word.revisit ? document.getElementById('revisitBtn').classList.add('revisit-active') : document.getElementById('revisitBtn').classList.remove('revisit-active');
             document.getElementById('cardInner').classList.remove('flipped');
         }
 
-        // LOOPING NAVIGATION
-        function nextCard() {
-            const list = getActiveList();
-            if (list.length === 0) return;
-            currentIdx = (currentIdx + 1) % list.length; // Loop to 0
-            updateUI();
-        }
-
-        function prevCard() {
-            const list = getActiveList();
-            if (list.length === 0) return;
-            currentIdx = (currentIdx - 1 + list.length) % list.length; // Loop to end
-            updateUI();
-        }
-
+        function nextCard() { const list = getActiveList(); if (list.length) { currentIdx = (currentIdx + 1) % list.length; updateUI(); } }
+        function prevCard() { const list = getActiveList(); if (list.length) { currentIdx = (currentIdx - 1 + list.length) % list.length; updateUI(); } }
+        
         function toggleRevisit() {
-            const list = getActiveList();
-            if (list.length === 0) return;
-            const word = list[currentIdx];
-            word.revisit = !word.revisit;
-            
-            // Sync A2 list if in A2 mode, or just localstorage
-            localStorage.setItem('myWords', JSON.stringify(myDeck));
-            updateUI();
+            const list = getActiveList(); if (!list.length) return;
+            const word = list[currentIdx]; word.revisit = !word.revisit;
+            localStorage.setItem('myWords', JSON.stringify(myDeck)); updateUI();
         }
 
         function debounceTranslate() {
-            // (Previous Google Translate logic - unchanged)
-            const text = document.getElementById('sourceText').value.trim();
-            if(!text) return;
-            // logic to save to myDeck if translated
-            // indicator logic...
-            // localStorage.setItem('myWords', JSON.stringify(myDeck));
+            const output = document.getElementById('targetText');
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('opacity-0');
+            clearTimeout(window.tTimer);
+            window.tTimer = setTimeout(async () => {
+                const text = document.getElementById('sourceText').value.trim();
+                if(!text) return;
+                const sl = isNlToEn ? 'nl' : 'en', tl = isNlToEn ? 'en' : 'nl';
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+                try {
+                    const res = await fetch(url); const data = await res.json();
+                    const trans = data[0][0][0]; output.innerText = trans;
+                    const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
+                    const enVal = (isNlToEn ? trans : text).trim();
+                    if(!myDeck.some(w => w.nl === nlVal)) {
+                        indicator.classList.remove('opacity-0');
+                        myDeck.unshift({ nl: nlVal, en: enVal, revisit: false });
+                        localStorage.setItem('myWords', JSON.stringify(myDeck));
+                        if(currentMode === 'saved') updateUI();
+                    }
+                    if(isNlToEn) conjugate(text);
+                } catch(e) {}
+            }, 700);
+        }
+
+        function conjugate(text) {
+            if(text.length < 3) return document.getElementById('conjugationBox').classList.add('hidden');
+            let stem = text.endsWith('en') ? text.slice(0, -2) : text;
+            let inf = text.endsWith('en') ? text : text + 'en';
+            const pres = `Ik ${stem}<br>Jij ${stem}t<br>Wij ${inf}`, past = `Ik ${stem}te<br>Wij ${stem}ten`;
+            document.getElementById('presTense').innerHTML = pres;
+            document.getElementById('pastTense').innerHTML = past;
+            document.getElementById('conjugationBox').classList.remove('hidden');
         }
 
         function speakText(text, lang) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(text);
             const voices = window.speechSynthesis.getVoices();
-            const filter = lang === 'nl' ? 'nl-NL' : 'en-US';
-            const fVoice = voices.find(v => v.lang.startsWith(filter) && (v.name.includes('Female') || v.name.includes('Google')));
-            if(fVoice) u.voice = fVoice;
-            u.pitch = 1.25; u.rate = 0.85;
-            window.speechSynthesis.speak(u);
+            const voice = voices.find(v => v.lang.startsWith(lang === 'nl' ? 'nl' : 'en') && v.name.includes('Female'));
+            if(voice) u.voice = voice;
+            u.pitch = 1.2; u.rate = 0.85; window.speechSynthesis.speak(u);
+        }
+
+        function swapLanguages() {
+            isNlToEn = !isNlToEn;
+            document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN';
+            document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL';
+            document.getElementById('sourceText').value = '';
+            document.getElementById('targetText').innerText = '...';
         }
 
         function deleteCurrentWord() {
-            if(currentMode === 'a2') return alert("A2 core words cannot be deleted.");
-            if(myDeck.length === 0) return;
-            if(confirm("Delete this word from your deck?")) {
-                myDeck.splice(currentIdx, 1);
-                localStorage.setItem('myWords', JSON.stringify(myDeck));
-                currentIdx = 0;
-                updateUI();
-            }
+            if(currentMode === 'a2') return alert("Protected list");
+            const list = getActiveList(); if(!list.length) return;
+            myDeck = myDeck.filter(w => w.nl !== list[currentIdx].nl);
+            localStorage.setItem('myWords', JSON.stringify(myDeck));
+            currentIdx = 0; updateUI();
         }
 
-        // Initialize
         updateUI();
     </script>
 </body>
