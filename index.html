@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Dutch Everyday - Master Hub</title>
+    <title>Dutch Everyday - Study Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -52,7 +52,7 @@
         
         <div id="conjugationBox" class="hidden max-w-7xl mx-auto mt-2 p-4 bg-white border-x border-b rounded-b-2xl shadow-inner animate-fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div><p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Present (Ik/Jij/Hij/Wij/Jullie/Zij)</p><div id="presTense" class="space-y-0.5"></div></div>
+                <div><p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Present (OTT)</p><div id="presTense" class="space-y-0.5"></div></div>
                 <div><p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Past (OVT)</p><div id="pastTense" class="space-y-0.5"></div></div>
             </div>
         </div>
@@ -62,17 +62,11 @@
         <aside class="w-full md:w-60 bg-white border-r border-slate-100 p-4 sticky top-[80px] h-fit">
             <nav class="flex flex-col gap-4">
                 <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
-                <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap"></i> KNM Exam List</button>
                 <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit List</button>
                 
                 <div class="pt-4 border-t border-slate-100">
                     <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">Chapters (Quizlet)</label>
                     <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">KNM Themes</label>
-                    <div id="knmThemeGrid" class="grid grid-cols-2 gap-1.5"></div>
                 </div>
             </nav>
         </aside>
@@ -108,27 +102,8 @@
     </div>
 
     <script>
-        const knmDatabase = [
-            { nl: "de sollicitatie", en: "job application", cat: "Work" },
-            { nl: "het salaris", en: "salary", cat: "Work" },
-            { nl: "de belasting", en: "tax", cat: "Work" },
-            { nl: "de collega", en: "colleague", cat: "Work" },
-            { nl: "de zorgverzekering", en: "health insurance", cat: "Health" },
-            { nl: "de huisarts", en: "GP / family doctor", cat: "Health" },
-            { nl: "het ziekenhuis", en: "hospital", cat: "Health" },
-            { nl: "de basisschool", en: "primary school", cat: "Education" },
-            { nl: "het diploma", en: "diploma", cat: "Education" },
-            { nl: "de overheid", en: "government", cat: "Politics" },
-            { nl: "de grondwet", en: "constitution", cat: "Politics" },
-            { nl: "de verkiezingen", en: "elections", cat: "Politics" },
-            { nl: "de burgemeester", en: "mayor", cat: "Politics" },
-            { nl: "de boodschappen", en: "groceries", cat: "Daily Life" },
-            { nl: "het verkeer", en: "traffic", cat: "Daily Life" },
-            { nl: "de huur", en: "rent", cat: "Daily Life" }
-        ].map(w => ({...w, revisit: false}));
-
         let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentMode = 'saved', currentIdx = 0, isNlToEn = true, currentCategory = 'All';
+        let currentMode = 'saved', currentIdx = 0, isNlToEn = true;
 
         function speakCorrectly(text, lang) {
             if(!text || text === "...") return;
@@ -172,30 +147,28 @@
         }
 
         function changeMode(mode) { 
-            currentMode = mode; currentIdx = 0; currentCategory = 'All';
+            currentMode = mode; currentIdx = 0;
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
             document.getElementById('nav-' + mode).classList.add('active-nav');
             updateUI(); 
         }
 
         function getActiveList() { 
-            let baseList = currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? knmDatabase : myDeck.concat(knmDatabase).filter(w => w.revisit));
-            if(currentMode === 'a2' && currentCategory !== 'All') return baseList.filter(w => w.cat === currentCategory);
-            return baseList;
+            return currentMode === 'saved' ? myDeck : myDeck.filter(w => w.revisit);
         }
 
         function updateUI() {
             const list = getActiveList();
             const counter = document.querySelectorAll('.cardCountUI');
             if(!list.length) { 
-                document.getElementById('flashFront').innerText = "Empty"; 
-                document.getElementById('flashBack').innerText = "...";
+                document.getElementById('flashFront').innerText = "Deck is empty"; 
+                document.getElementById('flashBack').innerText = "Search above to add words";
                 counter.forEach(el => el.innerText = "0/0"); return; 
             }
             const word = list[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
-            document.getElementById('deckLabel').innerText = word.cat ? `KNM: ${word.cat}` : (currentMode === 'revisit' ? 'Revisit' : 'My Deck');
+            document.getElementById('deckLabel').innerText = currentMode === 'revisit' ? 'Priority List' : 'My Deck';
             counter.forEach(el => el.innerText = `${currentIdx + 1}/${list.length}`);
             document.getElementById('cardInner').classList.remove('flipped');
             word.revisit ? document.getElementById('revisitBtn').classList.add('revisit-active') : document.getElementById('revisitBtn').classList.remove('revisit-active');
@@ -211,23 +184,17 @@
         }
 
         function deleteCurrentWord() {
-            if(currentMode === 'a2') return alert("Protected word");
-            if(myDeck.length) { myDeck.splice(currentIdx, 1); localStorage.setItem('myWords', JSON.stringify(myDeck)); currentIdx = 0; updateUI(); }
+            if(myDeck.length) { 
+                myDeck.splice(currentIdx, 1); 
+                localStorage.setItem('myWords', JSON.stringify(myDeck)); 
+                currentIdx = 0; 
+                updateUI(); 
+            }
         }
 
         function nextCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx + 1) % l.length; updateUI(); } }
         function prevCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx - 1 + l.length) % l.length; updateUI(); } }
         function swapLanguages() { isNlToEn = !isNlToEn; document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; }
-
-        // Category Init
-        const categories = ["All", "Work", "Health", "Education", "Politics", "Daily Life"];
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = "h-9 px-1 rounded-lg text-[9px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm truncate";
-            btn.innerText = cat;
-            btn.onclick = () => { currentMode = 'a2'; currentCategory = cat; currentIdx = 0; changeMode('a2'); };
-            document.getElementById('knmThemeGrid').appendChild(btn);
-        });
 
         // Chapter Init
         const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
