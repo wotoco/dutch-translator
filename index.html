@@ -1,265 +1,177 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Dutch Everyday - A2 & KNM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        .active-nav { background: #4f46e5 !important; color: white !important; font-weight: 700; }
-        .card-inner { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; height: 100%; width: 100%; }
-        .flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
-        .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
-        .inner-nav { position: absolute; top: 0; bottom: 0; width: 50px; display: flex; align-items: center; justify-content: center; z-index: 20; color: #cbd5e1; transition: color 0.2s; cursor: pointer; }
-        .inner-nav:hover { color: #4f46e5; }
-        .card-back .inner-nav:hover { color: white; }
-        .search-row { height: 50px; border: 1px solid #e2e8f0; }
-        .revisit-active { color: #f59e0b !important; }
-        .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 5px 0; align-items: center; font-size: 0.75rem; }
-        /* Category button active state */
-        .cat-btn-active { border-color: #4f46e5 !important; background-color: #f5f3ff !important; color: #4f46e5 !important; }
-    </style>
-</head>
-<body>
-
-    <header class="bg-white border-b sticky top-0 z-50 shadow-sm p-3">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-4">
-            <div class="flex items-center gap-2 self-start md:self-center shrink-0">
-                <span class="text-2xl">🇳🇱</span>
-                <h1 class="text-lg font-black tracking-tighter italic text-slate-800">Dutch<span class="text-indigo-600">Everyday</span></h1>
-            </div>
-
-            <div class="w-full flex flex-col md:flex-row items-center gap-2 flex-grow">
-                <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-3 search-row">
-                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2" id="label-source">NL</span>
-                    <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search word..." class="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full outline-none">
-                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2 transition"><i class="fas fa-volume-up"></i></button>
-                </div>
-                <button onclick="swapLanguages()" class="hidden md:flex bg-white border w-10 h-10 rounded-full items-center justify-center text-indigo-600 active:scale-90 transition-all"><i class="fas fa-exchange-alt text-xs"></i></button>
-                <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-3 border border-indigo-100 search-row">
-                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2" id="label-target">EN</span>
-                    <div id="targetText" class="text-indigo-700 font-bold text-sm italic truncate w-full">...</div>
-                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2 transition"><i class="fas fa-volume-up"></i></button>
-                </div>
-            </div>
-
-            <button onclick="toggleConj()" id="conjToggleBtn" class="hidden md:flex bg-slate-100 text-slate-500 px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-200 transition">
-                <i class="fas fa-book-open mr-2"></i> Conjugate
-            </button>
-        </div>
+<aside class="w-full md:w-60 bg-white border-r border-slate-100 p-4 sticky top-[80px] h-fit">
+    <nav class="flex flex-col gap-4">
+        <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
+        <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap text-indigo-500"></i> A2 & KNM List</button>
+        <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit List</button>
         
-        <div id="conjugationBox" class="hidden max-w-7xl mx-auto mt-2 p-4 bg-white border-x border-b rounded-b-2xl shadow-inner">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div><p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Present (OTT)</p><div id="presTense"></div></div>
-                <div><p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Past (OVT)</p><div id="pastTense"></div></div>
-            </div>
+        <div class="pt-4 border-t border-slate-100">
+            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">Flashcard Filter</label>
+            <div id="categoryGrid" class="grid grid-cols-2 gap-2"></div>
         </div>
-    </header>
 
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row min-h-screen">
-        <aside class="w-full md:w-60 bg-white border-r border-slate-100 p-4 sticky top-[80px] h-fit">
-            <nav class="flex flex-col gap-4">
-                <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
-                <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap text-indigo-500"></i> A2 & KNM List</button>
-                <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit List</button>
-                
-                <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">KNM Categories</label>
-                    <div id="categoryGrid" class="grid grid-cols-2 gap-2">
-                        </div>
-                </div>
-            </nav>
-        </aside>
+        <div class="pt-4 border-t border-slate-100">
+            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">Quizlet Chapters</label>
+            <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
+        </div>
+    </nav>
+</aside>
 
-        <main class="flex-grow p-4 lg:p-10 flex flex-col items-center">
-            <div id="deckArea" class="w-full max-w-xl relative">
-                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all hover:bg-slate-50"><i class="fas fa-star"></i></button>
-                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all hover:bg-red-50"><i class="fas fa-trash-alt text-xs"></i></button>
+<script>
+    // 1. Data Definitions
+    const ocrFullDatabase = [
+        {nl: "de overheid", en: "the government", cat: "Politics"},
+        {nl: "de belasting", en: "the tax", cat: "Work"},
+        {nl: "de zorgverzekering", en: "health insurance", cat: "Health"},
+        {nl: "de huisarts", en: "family doctor", cat: "Health"},
+        {nl: "de grondwet", en: "constitution", cat: "Politics"},
+        {nl: "de verkiezingen", en: "elections", cat: "Politics"},
+        {nl: "de gemeente", en: "municipality", cat: "Politics"},
+        {nl: "het salaris", en: "salary", cat: "Work"},
+        {nl: "de sollicitatie", en: "job application", cat: "Work"},
+        {nl: "de kollega", en: "colleague", cat: "Work"},
+        {nl: "de basisschool", en: "primary school", cat: "Education"},
+        {nl: "het diploma", en: "diploma", cat: "Education"},
+        {nl: "de buren", en: "neighbors", cat: "Daily Life"},
+        {nl: "het verkeer", en: "traffic", cat: "Daily Life"},
+        {nl: "de huur", en: "rent", cat: "Housing"},
+        {nl: "de makelaar", en: "real estate agent", cat: "Housing"},
+        {nl: "de inburgering", en: "civic integration", cat: "Culture"},
+        {nl: "de normen", en: "standards / norms", cat: "Culture"}
+    ].map(w => ({...w, revisit: false}));
 
-                <div class="relative h-80 w-full">
-                    <div class="inner-nav left-0 rounded-l-2xl" onclick="prevCard()"><i class="fas fa-chevron-left"></i></div>
-                    <div class="inner-nav right-0 rounded-r-2xl" onclick="nextCard()"><i class="fas fa-chevron-right"></i></div>
+    const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
+    const categories = ["All", "Daily Life", "Work", "Politics", "Health", "Education", "Housing", "Culture"];
 
-                    <div class="w-full h-full cursor-pointer" onclick="this.querySelector('.card-inner').classList.toggle('flipped')">
-                        <div id="cardInner" class="card-inner relative">
-                            <div class="card-face bg-white shadow-xl">
-                                <span id="deckLabel" class="absolute top-6 text-[10px] font-black text-indigo-400 uppercase tracking-widest">A2 & KNM</span>
-                                <p id="flashFront" class="text-3xl font-extrabold text-slate-800 px-10">...</p>
-                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
-                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-slate-300 cardCountUI">0/0</div>
-                            </div>
-                            <div class="card-face card-back shadow-xl">
-                                <p id="flashBack" class="text-3xl font-bold italic px-10">...</p>
-                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
-                                <div class="absolute bottom-6 right-8 text-[10px] font-bold text-indigo-200 cardCountUI">0/0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+    let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
+    let currentMode = 'a2', currentIdx = 0, isNlToEn = true, currentCategory = 'All';
 
-    <script>
-        // FULL CATEGORIZED DATABASE (Open-KNM mapping)
-        const ocrFullDatabase = [
-            {nl: "de overheid", en: "the government", cat: "Politics"},
-            {nl: "de belasting", en: "the tax", cat: "Work"},
-            {nl: "de zorgverzekering", en: "health insurance", cat: "Health"},
-            {nl: "de huisarts", en: "family doctor", cat: "Health"},
-            {nl: "de grondwet", en: "constitution", cat: "Politics"},
-            {nl: "de verkiezingen", en: "elections", cat: "Politics"},
-            {nl: "de gemeente", en: "municipality", cat: "Politics"},
-            {nl: "het salaris", en: "salary", cat: "Work"},
-            {nl: "de sollicitatie", en: "job application", cat: "Work"},
-            {nl: "de collega", en: "colleague", cat: "Work"},
-            {nl: "de basisschool", en: "primary school", cat: "Education"},
-            {nl: "het diploma", en: "diploma", cat: "Education"},
-            {nl: "de buren", en: "neighbors", cat: "Daily Life"},
-            {nl: "het verkeer", en: "traffic", cat: "Daily Life"},
-            {nl: "de huur", en: "rent", cat: "Housing"},
-            {nl: "de makelaar", en: "real estate agent", cat: "Housing"},
-            {nl: "de inburgering", en: "civic integration", cat: "Culture"},
-            {nl: "de normen", en: "standards / norms", cat: "Culture"}
-        ].map(w => ({...w, revisit: false}));
+    // 2. Initializers
+    function initUI() {
+        // Build Category Filter Buttons
+        const catGrid = document.getElementById('categoryGrid');
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.id = `cat-${cat.replace(/\s/g, '')}`;
+            btn.className = "h-9 rounded-lg text-[9px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
+            btn.innerText = cat;
+            btn.onclick = () => { currentCategory = cat; changeMode('a2'); updateCatUI(); };
+            catGrid.appendChild(btn);
+        });
 
-        let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentMode = 'a2', currentIdx = 0, isNlToEn = true, currentCategory = 'All';
-
-        const categories = ["All", "Daily Life", "Work", "Politics", "Health", "Education", "Housing", "Culture"];
-
-        function initCategories() {
-            const grid = document.getElementById('categoryGrid');
-            categories.forEach(cat => {
-                const btn = document.createElement('button');
-                btn.id = `cat-${cat.replace(/\s/g, '')}`;
-                btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
-                btn.innerText = cat;
-                btn.onclick = () => {
-                    currentCategory = cat;
-                    changeMode('a2');
-                    updateCatUI();
-                };
-                grid.appendChild(btn);
-            });
-            updateCatUI();
+        // Build 18 Chapters Grid
+        const chapGrid = document.getElementById('chapterGrid');
+        for(let i=1; i<=18; i++) {
+            const btn = document.createElement('button');
+            btn.className = "h-8 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
+            btn.innerText = i;
+            btn.onclick = () => window.open(`https://quizlet.com/${chapterData[i]}/flashcards`, '_blank');
+            chapGrid.appendChild(btn);
         }
-
-        function updateCatUI() {
-            categories.forEach(cat => {
-                const btn = document.getElementById(`cat-${cat.replace(/\s/g, '')}`);
-                if(currentCategory === cat) btn.classList.add('cat-btn-active');
-                else btn.classList.remove('cat-btn-active');
-            });
-        }
-
-        function speakText(text, lang) {
-            if(!text || text === "...") return;
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            const voices = window.speechSynthesis.getVoices();
-            const langCode = lang === 'nl' ? 'nl-NL' : 'en-US';
-            const fVoice = voices.find(v => v.lang.includes(langCode) && (v.name.includes('Female') || v.name.includes('Google'))) || voices.find(v => v.lang.includes(langCode));
-            if(fVoice) u.voice = fVoice;
-            u.pitch = 1.2; u.rate = 0.9;
-            window.speechSynthesis.speak(u);
-        }
-
-        function toggleConj() { document.getElementById('conjugationBox').classList.toggle('hidden'); }
-
-        function conjugate(text) {
-            if(!isNlToEn || text.length < 3) return;
-            document.getElementById('conjToggleBtn').classList.remove('hidden');
-            let stem = text.endsWith('en') ? text.slice(0, -2) : text;
-            let inf = text.endsWith('en') ? text : text + 'en';
-            const ott = [{p: 'Ik', v: stem}, {p: 'Jij/U', v: stem+'t'}, {p: 'Wij', v: inf}];
-            const build = (arr) => arr.map(i => `<div class="conj-item"><span>${i.p} <b class="text-indigo-600">${i.v}</b></span><i class="fas fa-volume-up text-slate-300 cursor-pointer p-1" onclick="speakText('${i.p} ${i.v}', 'nl')"></i></div>`).join('');
-            document.getElementById('presTense').innerHTML = build(ott);
-        }
-
-        async function debounceTranslate() {
-            clearTimeout(window.tTimer);
-            window.tTimer = setTimeout(async () => {
-                const text = document.getElementById('sourceText').value.trim();
-                if(!text) return;
-                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${isNlToEn?'nl':'en'}&tl=${isNlToEn?'en':'nl'}&dt=t&q=${encodeURIComponent(text)}`;
-                try {
-                    const res = await fetch(url); const data = await res.json();
-                    const trans = data[0][0][0];
-                    document.getElementById('targetText').innerText = trans;
-                    if(!myDeck.some(w => w.nl === (isNlToEn?text:trans).toLowerCase())) {
-                        myDeck.unshift({ nl: (isNlToEn?text:trans).toLowerCase(), en: (isNlToEn?trans:text), revisit: false });
-                        localStorage.setItem('myWords', JSON.stringify(myDeck));
-                    }
-                    if(isNlToEn) conjugate(text.toLowerCase());
-                } catch(e) {}
-            }, 700);
-        }
-
-        function changeMode(mode) { 
-            currentMode = mode; currentIdx = 0; 
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
-            document.getElementById('nav-' + mode).classList.add('active-nav');
-            updateUI(); 
-        }
-
-        function getActiveList() { 
-            let list = currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? ocrFullDatabase : myDeck.concat(ocrFullDatabase).filter(w => w.revisit));
-            if(currentMode === 'a2' && currentCategory !== 'All') {
-                return list.filter(w => w.cat === currentCategory);
-            }
-            return list;
-        }
-
-        function updateUI() {
-            const list = getActiveList();
-            if(!list.length) {
-                document.getElementById('flashFront').innerText = "No words here";
-                document.getElementById('flashBack').innerText = "Try another category";
-                return;
-            }
-            const word = list[currentIdx];
-            document.getElementById('flashFront').innerText = word.nl;
-            document.getElementById('flashBack').innerText = word.en;
-            document.getElementById('deckLabel').innerText = word.cat ? `KNM: ${word.cat}` : 'My Deck';
-            document.querySelectorAll('.cardCountUI').forEach(el => el.innerText = `${currentIdx + 1}/${list.length}`);
-            document.getElementById('cardInner').classList.remove('flipped');
-            word.revisit ? document.getElementById('revisitBtn').classList.add('revisit-active') : document.getElementById('revisitBtn').classList.remove('revisit-active');
-        }
-
-        function toggleRevisit() {
-            const list = getActiveList();
-            if(list.length) {
-                list[currentIdx].revisit = !list[currentIdx].revisit;
-                localStorage.setItem('myWords', JSON.stringify(myDeck));
-                updateUI();
-            }
-        }
-
-        function deleteCurrentWord() {
-            if(currentMode === 'a2') return alert("Cannot delete preset words");
-            if(myDeck.length) {
-                myDeck.splice(currentIdx, 1);
-                localStorage.setItem('myWords', JSON.stringify(myDeck));
-                currentIdx = 0; updateUI();
-            }
-        }
-
-        function nextCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx + 1) % l.length; updateUI(); } }
-        function prevCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx - 1 + l.length) % l.length; updateUI(); } }
-        function swapLanguages() { 
-            isNlToEn = !isNlToEn; 
-            document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; 
-            document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; 
-        }
-
-        // Initialize
-        initCategories();
+        updateCatUI();
         updateUI();
-    </script>
-</body>
-</html>
+    }
+
+    // 3. Core Logic (Filtering & Display)
+    function updateCatUI() {
+        categories.forEach(cat => {
+            const btn = document.getElementById(`cat-${cat.replace(/\s/g, '')}`);
+            if(currentCategory === cat) btn.classList.add('cat-btn-active');
+            else btn.classList.remove('cat-btn-active');
+        });
+    }
+
+    function changeMode(mode) { 
+        currentMode = mode; currentIdx = 0; 
+        document.querySelectorAll('nav > button').forEach(b => b.classList.remove('active-nav'));
+        document.getElementById('nav-' + mode).classList.add('active-nav');
+        updateUI(); 
+    }
+
+    function getActiveList() { 
+        let list = currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? ocrFullDatabase : myDeck.concat(ocrFullDatabase).filter(w => w.revisit));
+        if(currentMode === 'a2' && currentCategory !== 'All') {
+            return list.filter(w => w.cat === currentCategory);
+        }
+        return list;
+    }
+
+    function updateUI() {
+        const list = getActiveList();
+        const flashFront = document.getElementById('flashFront');
+        const flashBack = document.getElementById('flashBack');
+        
+        if(!list.length) {
+            flashFront.innerText = "Empty List";
+            flashBack.innerText = "Add words or change category";
+            return;
+        }
+        const word = list[currentIdx];
+        flashFront.innerText = word.nl;
+        flashBack.innerText = word.en;
+        document.getElementById('deckLabel').innerText = word.cat ? `KNM: ${word.cat}` : (currentMode === 'saved' ? 'My Deck' : 'Revisit');
+        document.querySelectorAll('.cardCountUI').forEach(el => el.innerText = `${currentIdx + 1}/${list.length}`);
+        document.getElementById('cardInner').classList.remove('flipped');
+        word.revisit ? document.getElementById('revisitBtn').classList.add('revisit-active') : document.getElementById('revisitBtn').classList.remove('revisit-active');
+    }
+
+    // 4. Utilities (Speech, Navigation, Storage)
+    function speakText(text, lang) {
+        if(!text || text === "...") return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        const voices = window.speechSynthesis.getVoices();
+        const langCode = lang === 'nl' ? 'nl-NL' : 'en-US';
+        const fVoice = voices.find(v => v.lang.includes(langCode) && (v.name.includes('Female') || v.name.includes('Google'))) || voices.find(v => v.lang.includes(langCode));
+        if(fVoice) u.voice = fVoice;
+        u.pitch = 1.2; u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+
+    function nextCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx + 1) % l.length; updateUI(); } }
+    function prevCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx - 1 + l.length) % l.length; updateUI(); } }
+
+    function toggleRevisit() {
+        const list = getActiveList();
+        if(list.length) {
+            list[currentIdx].revisit = !list[currentIdx].revisit;
+            localStorage.setItem('myWords', JSON.stringify(myDeck));
+            updateUI();
+        }
+    }
+
+    function deleteCurrentWord() {
+        if(currentMode === 'a2') return alert("Cannot delete preset words");
+        if(myDeck.length) {
+            myDeck.splice(currentIdx, 1);
+            localStorage.setItem('myWords', JSON.stringify(myDeck));
+            currentIdx = 0; updateUI();
+        }
+    }
+
+    async function debounceTranslate() {
+        clearTimeout(window.tTimer);
+        window.tTimer = setTimeout(async () => {
+            const text = document.getElementById('sourceText').value.trim();
+            if(!text) return;
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${isNlToEn?'nl':'en'}&tl=${isNlToEn?'en':'nl'}&dt=t&q=${encodeURIComponent(text)}`;
+            try {
+                const res = await fetch(url); const data = await res.json();
+                const trans = data[0][0][0];
+                document.getElementById('targetText').innerText = trans;
+                if(!myDeck.some(w => w.nl === (isNlToEn?text:trans).toLowerCase())) {
+                    myDeck.unshift({ nl: (isNlToEn?text:trans).toLowerCase(), en: (isNlToEn?trans:text), revisit: false });
+                    localStorage.setItem('myWords', JSON.stringify(myDeck));
+                }
+            } catch(e) {}
+        }, 700);
+    }
+
+    function swapLanguages() { 
+        isNlToEn = !isNlToEn; 
+        document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; 
+        document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; 
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    initUI();
+</script>
