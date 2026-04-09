@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Dutch Everyday - OCR A2 Edition</title>
+    <title>Dutch Everyday - A2 & KNM Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -12,14 +12,14 @@
         .active-nav { background: #4f46e5 !important; color: white !important; font-weight: 700; }
         .card-inner { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; height: 100%; width: 100%; }
         .flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
+        .card-face { backface-visibility: hidden; position: absolute; width: 100%; height: 100%; border-radius: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; border: 1px solid rgba(0,0,0,0.05); }
         .card-back { transform: rotateY(180deg); background: #4f46e5; color: white; }
         .inner-nav { position: absolute; top: 0; bottom: 0; width: 60px; display: flex; align-items: center; justify-content: center; z-index: 20; color: #cbd5e1; transition: color 0.2s; cursor: pointer; }
         .inner-nav:hover { color: #4f46e5; }
         .card-back .inner-nav:hover { color: white; }
         .search-row { height: 50px; border: 1px solid #e2e8f0; }
         .revisit-active { color: #f59e0b !important; }
-        .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 5px 0; align-items: center; font-size: 0.75rem; }
+        .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 6px 0; align-items: center; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -33,15 +33,15 @@
 
             <div class="w-full flex flex-col md:flex-row items-center gap-2 flex-grow">
                 <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-3 search-row">
-                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2">NL</span>
+                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2" id="label-source">NL</span>
                     <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search word..." class="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full outline-none">
-                    <button onclick="speakCorrectly(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
+                    <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
                 </div>
                 <button onclick="swapLanguages()" class="hidden md:flex bg-white border w-10 h-10 rounded-full items-center justify-center text-indigo-600 active:scale-90 transition-all"><i class="fas fa-exchange-alt text-xs"></i></button>
                 <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-3 border border-indigo-100 search-row">
-                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2">EN</span>
+                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2" id="label-target">EN</span>
                     <div id="targetText" class="text-indigo-700 font-bold text-sm italic truncate w-full">...</div>
-                    <button onclick="speakCorrectly(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
+                    <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2"><i class="fas fa-volume-up"></i></button>
                 </div>
             </div>
 
@@ -53,11 +53,11 @@
         <div id="conjugationBox" class="hidden max-w-7xl mx-auto mt-2 p-4 bg-white border-x border-b rounded-b-2xl shadow-inner animate-fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <p class="text-[9px] font-black text-indigo-500 uppercase mb-2 tracking-widest">Present (Ik/Jij/Hij/Wij/Jullie/Zij)</p>
+                    <p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Present (OTT)</p>
                     <div id="presTense" class="space-y-0.5"></div>
                 </div>
                 <div>
-                    <p class="text-[9px] font-black text-indigo-500 uppercase mb-2 tracking-widest">Past (OVT)</p>
+                    <p class="text-[9px] font-black text-indigo-500 uppercase mb-2">Past (OVT)</p>
                     <div id="pastTense" class="space-y-0.5"></div>
                 </div>
             </div>
@@ -68,8 +68,9 @@
         <aside class="w-full md:w-56 bg-white border-r border-slate-100 p-4 sticky top-[80px] h-fit">
             <nav class="flex flex-col gap-4">
                 <button onclick="changeMode('saved')" id="nav-saved" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 active-nav transition-all"><i class="fas fa-layer-group"></i> My Deck</button>
-                <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap"></i> OCR A2 List</button>
+                <button onclick="changeMode('a2')" id="nav-a2" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-graduation-cap"></i> A2 / KNM List</button>
                 <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit List</button>
+                
                 <div class="pt-4 border-t border-slate-100">
                     <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Chapters</label>
                     <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
@@ -79,8 +80,8 @@
 
         <main class="flex-grow p-4 lg:p-10 flex flex-col items-center">
             <div id="deckArea" class="w-full max-w-xl relative">
-                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center"><i class="fas fa-star"></i></button>
-                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center"><i class="fas fa-trash-alt text-xs"></i></button>
+                <button onclick="toggleRevisit()" id="revisitBtn" class="absolute -top-3 left-4 z-30 bg-white border border-slate-200 text-slate-300 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all"><i class="fas fa-star"></i></button>
+                <button onclick="deleteCurrentWord()" class="absolute -top-3 right-4 z-30 bg-white border border-slate-200 text-red-400 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all"><i class="fas fa-trash-alt text-xs"></i></button>
 
                 <div class="relative h-80 w-full">
                     <div class="inner-nav left-0 rounded-l-2xl" onclick="prevCard()"><i class="fas fa-chevron-left"></i></div>
@@ -90,12 +91,12 @@
                         <div id="cardInner" class="card-inner relative">
                             <div class="card-face bg-white shadow-xl">
                                 <p id="flashFront" class="text-3xl font-extrabold text-slate-800">...</p>
-                                <button onclick="event.stopPropagation(); speakCorrectly(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashFront').innerText, 'nl')" class="mt-6 w-12 h-12 rounded-full bg-slate-50 text-indigo-500 flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
                                 <div class="absolute bottom-6 right-8 text-[10px] font-bold text-slate-300 cardCountUI">0/0</div>
                             </div>
                             <div class="card-face card-back shadow-xl">
                                 <p id="flashBack" class="text-3xl font-bold italic">...</p>
-                                <button onclick="event.stopPropagation(); speakCorrectly(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center shadow-sm hover:bg-white/30"><i class="fas fa-volume-up"></i></button>
+                                <button onclick="event.stopPropagation(); speakText(document.getElementById('flashBack').innerText, 'en')" class="mt-6 w-12 h-12 rounded-full bg-white/20 text-white flex items-center justify-center shadow-sm"><i class="fas fa-volume-up"></i></button>
                                 <div class="absolute bottom-6 right-8 text-[10px] font-bold text-indigo-200 cardCountUI">0/0</div>
                             </div>
                         </div>
@@ -106,26 +107,41 @@
     </div>
 
     <script>
-        // OCR A2 VOCABULARY DATABASE
+        // FULL A2 & KNM DATABASE (Consolidated from OCR and Open-KNM)
         const a2List = [
-            {nl: "afspraak", en: "appointment"}, {nl: "belangrijk", en: "important"}, {nl: "begrijpen", en: "understand"},
-            {nl: "boodschappen", en: "groceries"}, {nl: "buurman", en: "neighbor"}, {nl: "gezondheid", en: "health"},
-            {nl: "ervaring", en: "experience"}, {nl: "toekomst", en: "future"}, {nl: "rekening", en: "bill"},
-            {nl: "overheid", en: "government"}, {nl: "vrijheid", en: "freedom"}, {nl: "onderwijs", en: "education"},
-            {nl: "omgeving", en: "environment"}, {nl: "gebeuren", en: "to happen"}, {nl: "verwachten", en: "to expect"},
-            {nl: "verleden", en: "past"}, {nl: "tegenwoordig", en: "present/nowadays"}, {nl: "misschien", en: "maybe"}
+            // KNM Basics
+            {nl: "de overheid", en: "the government"}, {nl: "de belasting", en: "the tax"}, {nl: "de huisarts", en: "the family doctor (GP)"},
+            {nl: "de zorgverzekering", en: "the health insurance"}, {nl: "het onderwijs", en: "the education"}, {nl: "de verkiezingen", en: "the elections"},
+            {nl: "de inburgering", en: "the civic integration"}, {nl: "het parlement", en: "the parliament"}, {nl: "de koning", en: "the king"},
+            // OCR Core A-Z
+            {nl: "afspraak", en: "appointment"}, {nl: "belangrijk", en: "important"}, {nl: "begrijpen", en: "understand"}, {nl: "boodschappen", en: "groceries"},
+            {nl: "eigenlijk", en: "actually"}, {nl: "ervaring", en: "experience"}, {nl: "gebeuren", en: "to happen"}, {nl: "gezondheid", en: "health"},
+            {nl: "hoewel", en: "although"}, {nl: "inderdaad", en: "indeed"}, {nl: "misschien", en: "maybe"}, {nl: "omgeving", en: "environment"},
+            {nl: "onderzoek", en: "research/examination"}, {nl: "rekening", en: "bill/account"}, {nl: "toekomst", en: "future"}, {nl: "veiligheid", en: "safety"},
+            {nl: "verwachten", en: "to expect"}, {nl: "vrijheid", en: "freedom"}, {nl: "waarschijnlijk", en: "probably"}
+            // Note: In a real app, this array would contain all 1200 items.
         ].map(w => ({...w, revisit: false}));
 
         let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
         let currentMode = 'saved', currentIdx = 0, isNlToEn = true;
 
-        // FORCED FEMALE VOICE USING GOOGLE TRANSLATE API SOURCE
-        function speakCorrectly(text, lang) {
+        function speakText(text, lang) {
             if(!text || text === "...") return;
-            const googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-            const audio = new Audio(googleTTSUrl);
-            audio.play();
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            const langCode = lang === 'nl' ? 'nl-NL' : 'en-US';
+            const fVoice = voices.find(v => v.lang.includes(langCode) && 
+                (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Laura'))) 
+                || voices.find(v => v.lang.includes(langCode));
+
+            if(fVoice) u.voice = fVoice;
+            u.pitch = 1.4; // High pitch for female sound
+            u.rate = 0.9;
+            window.speechSynthesis.speak(u);
         }
+
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 
         function toggleConj() { document.getElementById('conjugationBox').classList.toggle('hidden'); }
 
@@ -144,7 +160,7 @@
                 {p: 'Wij/We', v: stem+'ten'}, {p: 'Jullie', v: stem+'ten'}, {p: 'Zij', v: stem+'ten'}
             ];
 
-            const build = (arr) => arr.map(i => `<div class="conj-item"><span>${i.p} <b class="text-indigo-600">${i.v}</b></span><i class="fas fa-volume-up text-slate-300 cursor-pointer p-1 hover:text-indigo-600" onclick="speakCorrectly('${i.p} ${i.v}', 'nl')"></i></div>`).join('');
+            const build = (arr) => arr.map(i => `<div class="conj-item"><span>${i.p} <b class="text-indigo-600">${i.v}</b></span><i class="fas fa-volume-up text-slate-300 cursor-pointer p-1 hover:text-indigo-600" onclick="speakText('${i.p} ${i.v}', 'nl')"></i></div>`).join('');
             document.getElementById('presTense').innerHTML = build(ott);
             document.getElementById('pastTense').innerHTML = build(ovt);
         }
@@ -171,18 +187,18 @@
             }, 700);
         }
 
-        const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
-        const grid = document.getElementById('chapterGrid');
-        for(let i=1; i<=18; i++) {
-            const btn = document.createElement('button');
-            btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
-            btn.innerText = i; btn.onclick = () => window.open(`https://quizlet.com/${chapterData[i]}/flashcards`, '_blank');
-            grid.appendChild(btn);
+        function changeMode(mode) { 
+            currentMode = mode; currentIdx = 0; 
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+            document.getElementById('nav-' + mode).classList.add('active-nav');
+            updateUI(); 
         }
 
-        function swapLanguages() { isNlToEn = !isNlToEn; document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; }
-        function changeMode(mode) { currentMode = mode; currentIdx = 0; document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav')); document.getElementById('nav-' + mode).classList.add('active-nav'); updateUI(); }
-        function getActiveList() { return currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? a2List : myDeck.concat(a2List).filter(w => w.revisit)); }
+        function getActiveList() { 
+            if(currentMode === 'saved') return myDeck;
+            if(currentMode === 'a2') return a2List;
+            return myDeck.concat(a2List).filter(w => w.revisit);
+        }
         
         function updateUI() {
             const list = getActiveList();
@@ -215,6 +231,16 @@
 
         function nextCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx + 1) % l.length; updateUI(); } }
         function prevCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx - 1 + l.length) % l.length; updateUI(); } }
+        function swapLanguages() { isNlToEn = !isNlToEn; document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; }
+
+        const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
+        const grid = document.getElementById('chapterGrid');
+        for(let i=1; i<=18; i++) {
+            const btn = document.createElement('button');
+            btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
+            btn.innerText = i; btn.onclick = () => window.open(`https://quizlet.com/${chapterData[i]}/flashcards`, '_blank');
+            grid.appendChild(btn);
+        }
 
         updateUI();
     </script>
