@@ -20,6 +20,8 @@
         .search-row { height: 50px; border: 1px solid #e2e8f0; }
         .revisit-active { color: #f59e0b !important; }
         .conj-item { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 5px 0; align-items: center; font-size: 0.75rem; }
+        /* Category button active state */
+        .cat-btn-active { border-color: #4f46e5 !important; background-color: #f5f3ff !important; color: #4f46e5 !important; }
     </style>
 </head>
 <body>
@@ -33,13 +35,13 @@
 
             <div class="w-full flex flex-col md:flex-row items-center gap-2 flex-grow">
                 <div class="flex-1 w-full flex items-center bg-slate-50 rounded-xl px-3 search-row">
-                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2">NL</span>
+                    <span class="text-[9px] font-black text-slate-400 uppercase mr-2" id="label-source">NL</span>
                     <input type="text" id="sourceText" oninput="debounceTranslate()" placeholder="Search word..." class="bg-transparent border-none focus:ring-0 text-sm font-semibold w-full outline-none">
                     <button onclick="speakText(document.getElementById('sourceText').value, isNlToEn ? 'nl' : 'en')" class="text-slate-300 hover:text-indigo-600 px-2 transition"><i class="fas fa-volume-up"></i></button>
                 </div>
                 <button onclick="swapLanguages()" class="hidden md:flex bg-white border w-10 h-10 rounded-full items-center justify-center text-indigo-600 active:scale-90 transition-all"><i class="fas fa-exchange-alt text-xs"></i></button>
                 <div class="flex-1 w-full flex items-center bg-indigo-50/50 rounded-xl px-3 border border-indigo-100 search-row">
-                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2">EN</span>
+                    <span class="text-[9px] font-black text-indigo-400 uppercase mr-2" id="label-target">EN</span>
                     <div id="targetText" class="text-indigo-700 font-bold text-sm italic truncate w-full">...</div>
                     <button onclick="speakText(document.getElementById('targetText').innerText, isNlToEn ? 'en' : 'nl')" class="text-indigo-300 hover:text-indigo-600 px-2 transition"><i class="fas fa-volume-up"></i></button>
                 </div>
@@ -66,8 +68,9 @@
                 <button onclick="changeMode('revisit')" id="nav-revisit" class="w-full p-3 rounded-xl text-xs font-bold flex items-center gap-3 text-slate-600 hover:bg-slate-50 transition-all"><i class="fas fa-star text-amber-500"></i> Revisit List</button>
                 
                 <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">Chapters</label>
-                    <div id="chapterGrid" class="grid grid-cols-4 gap-1.5"></div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3 tracking-widest">KNM Categories</label>
+                    <div id="categoryGrid" class="grid grid-cols-2 gap-2">
+                        </div>
                 </div>
             </nav>
         </aside>
@@ -102,23 +105,57 @@
     </div>
 
     <script>
-        // FULL A2 & KNM INTEGRATED DATABASE
+        // FULL CATEGORIZED DATABASE (Open-KNM mapping)
         const ocrFullDatabase = [
-            /* KNM TOPICS (Politics, Health, Society) */
-            {nl: "de overheid", en: "the government"}, {nl: "de belasting", en: "the tax"}, {nl: "de inburgering", en: "the civic integration"},
-            {nl: "de zorgverzekering", en: "the health insurance"}, {nl: "de huisarts", en: "family doctor"}, {nl: "de grondwet", en: "constitution"},
-            {nl: "de verkiezingen", en: "elections"}, {nl: "het parlement", en: "parliament"}, {nl: "de gemeente", en: "municipality"},
-            /* OCR ALPHABETICAL (A-C) */
-            {nl: "aanbieden", en: "to offer"}, {nl: "aandacht", en: "attention"}, {nl: "aankomen", en: "to arrive"},
-            {nl: "aanpassen", en: "to adapt"}, {nl: "aardappel", en: "potato"}, {nl: "aardig", en: "nice"},
-            {nl: "afspraak", en: "appointment"}, {nl: "begrijpen", en: "to understand"}, {nl: "belangrijk", en: "important"},
-            {nl: "boodschappen", en: "groceries"}, {nl: "buitenland", en: "abroad"}, {nl: "cadeau", en: "gift"},
-            {nl: "contact", en: "contact"}, {nl: "cursus", en: "course"}
-            /* Pattern: Add more OCR words here following {nl: "...", en: "..."} */
+            {nl: "de overheid", en: "the government", cat: "Politics"},
+            {nl: "de belasting", en: "the tax", cat: "Work"},
+            {nl: "de zorgverzekering", en: "health insurance", cat: "Health"},
+            {nl: "de huisarts", en: "family doctor", cat: "Health"},
+            {nl: "de grondwet", en: "constitution", cat: "Politics"},
+            {nl: "de verkiezingen", en: "elections", cat: "Politics"},
+            {nl: "de gemeente", en: "municipality", cat: "Politics"},
+            {nl: "het salaris", en: "salary", cat: "Work"},
+            {nl: "de sollicitatie", en: "job application", cat: "Work"},
+            {nl: "de collega", en: "colleague", cat: "Work"},
+            {nl: "de basisschool", en: "primary school", cat: "Education"},
+            {nl: "het diploma", en: "diploma", cat: "Education"},
+            {nl: "de buren", en: "neighbors", cat: "Daily Life"},
+            {nl: "het verkeer", en: "traffic", cat: "Daily Life"},
+            {nl: "de huur", en: "rent", cat: "Housing"},
+            {nl: "de makelaar", en: "real estate agent", cat: "Housing"},
+            {nl: "de inburgering", en: "civic integration", cat: "Culture"},
+            {nl: "de normen", en: "standards / norms", cat: "Culture"}
         ].map(w => ({...w, revisit: false}));
 
         let myDeck = JSON.parse(localStorage.getItem('myWords')) || [];
-        let currentMode = 'saved', currentIdx = 0, isNlToEn = true;
+        let currentMode = 'a2', currentIdx = 0, isNlToEn = true, currentCategory = 'All';
+
+        const categories = ["All", "Daily Life", "Work", "Politics", "Health", "Education", "Housing", "Culture"];
+
+        function initCategories() {
+            const grid = document.getElementById('categoryGrid');
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.id = `cat-${cat.replace(/\s/g, '')}`;
+                btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    currentCategory = cat;
+                    changeMode('a2');
+                    updateCatUI();
+                };
+                grid.appendChild(btn);
+            });
+            updateCatUI();
+        }
+
+        function updateCatUI() {
+            categories.forEach(cat => {
+                const btn = document.getElementById(`cat-${cat.replace(/\s/g, '')}`);
+                if(currentCategory === cat) btn.classList.add('cat-btn-active');
+                else btn.classList.remove('cat-btn-active');
+            });
+        }
 
         function speakText(text, lang) {
             if(!text || text === "...") return;
@@ -126,13 +163,11 @@
             const u = new SpeechSynthesisUtterance(text);
             const voices = window.speechSynthesis.getVoices();
             const langCode = lang === 'nl' ? 'nl-NL' : 'en-US';
-            const fVoice = voices.find(v => v.lang.includes(langCode) && (v.name.includes('Female') || v.name.includes('Google') || v.name.includes('Samantha'))) || voices.find(v => v.lang.includes(langCode));
+            const fVoice = voices.find(v => v.lang.includes(langCode) && (v.name.includes('Female') || v.name.includes('Google'))) || voices.find(v => v.lang.includes(langCode));
             if(fVoice) u.voice = fVoice;
-            u.pitch = 1.4; u.rate = 0.9;
+            u.pitch = 1.2; u.rate = 0.9;
             window.speechSynthesis.speak(u);
         }
-
-        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
 
         function toggleConj() { document.getElementById('conjugationBox').classList.toggle('hidden'); }
 
@@ -141,34 +176,26 @@
             document.getElementById('conjToggleBtn').classList.remove('hidden');
             let stem = text.endsWith('en') ? text.slice(0, -2) : text;
             let inf = text.endsWith('en') ? text : text + 'en';
-            const ott = [
-                {p: 'Ik', v: stem}, {p: 'Jij/U', v: stem+'t'}, {p: 'Hij/Zij/Het', v: stem+'t'},
-                {p: 'Wij', v: inf}, {p: 'Jullie', v: inf}, {p: 'Zij', v: inf}
-            ];
-            const ovt = [{p: 'Ik/Hij/Zij', v: stem+'te'}, {p: 'Wij/Jullie/Zij', v: stem+'ten'}];
+            const ott = [{p: 'Ik', v: stem}, {p: 'Jij/U', v: stem+'t'}, {p: 'Wij', v: inf}];
             const build = (arr) => arr.map(i => `<div class="conj-item"><span>${i.p} <b class="text-indigo-600">${i.v}</b></span><i class="fas fa-volume-up text-slate-300 cursor-pointer p-1" onclick="speakText('${i.p} ${i.v}', 'nl')"></i></div>`).join('');
             document.getElementById('presTense').innerHTML = build(ott);
-            document.getElementById('pastTense').innerHTML = build(ovt);
         }
 
-        function debounceTranslate() {
+        async function debounceTranslate() {
             clearTimeout(window.tTimer);
             window.tTimer = setTimeout(async () => {
                 const text = document.getElementById('sourceText').value.trim();
                 if(!text) return;
-                const sl = isNlToEn ? 'nl' : 'en', tl = isNlToEn ? 'en' : 'nl';
-                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${isNlToEn?'nl':'en'}&tl=${isNlToEn?'en':'nl'}&dt=t&q=${encodeURIComponent(text)}`;
                 try {
                     const res = await fetch(url); const data = await res.json();
-                    const trans = data[0][0][0]; 
+                    const trans = data[0][0][0];
                     document.getElementById('targetText').innerText = trans;
-                    const nlVal = (isNlToEn ? text : trans).toLowerCase().trim();
-                    if(!myDeck.some(w => w.nl === nlVal)) {
-                        myDeck.unshift({ nl: nlVal, en: (isNlToEn ? trans : text), revisit: false });
+                    if(!myDeck.some(w => w.nl === (isNlToEn?text:trans).toLowerCase())) {
+                        myDeck.unshift({ nl: (isNlToEn?text:trans).toLowerCase(), en: (isNlToEn?trans:text), revisit: false });
                         localStorage.setItem('myWords', JSON.stringify(myDeck));
-                        updateUI();
                     }
-                    if(isNlToEn) conjugate(nlVal);
+                    if(isNlToEn) conjugate(text.toLowerCase());
                 } catch(e) {}
             }, 700);
         }
@@ -177,18 +204,28 @@
             currentMode = mode; currentIdx = 0; 
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
             document.getElementById('nav-' + mode).classList.add('active-nav');
-            document.getElementById('deckLabel').innerText = mode === 'a2' ? 'A2 & KNM List' : 'My Deck';
             updateUI(); 
         }
 
-        function getActiveList() { return currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? ocrFullDatabase : myDeck.concat(ocrFullDatabase).filter(w => w.revisit)); }
+        function getActiveList() { 
+            let list = currentMode === 'saved' ? myDeck : (currentMode === 'a2' ? ocrFullDatabase : myDeck.concat(ocrFullDatabase).filter(w => w.revisit));
+            if(currentMode === 'a2' && currentCategory !== 'All') {
+                return list.filter(w => w.cat === currentCategory);
+            }
+            return list;
+        }
 
         function updateUI() {
             const list = getActiveList();
-            if(!list.length) { document.getElementById('flashFront').innerText = "Empty"; document.getElementById('flashBack').innerText = "..."; return; }
+            if(!list.length) {
+                document.getElementById('flashFront').innerText = "No words here";
+                document.getElementById('flashBack').innerText = "Try another category";
+                return;
+            }
             const word = list[currentIdx];
             document.getElementById('flashFront').innerText = word.nl;
             document.getElementById('flashBack').innerText = word.en;
+            document.getElementById('deckLabel').innerText = word.cat ? `KNM: ${word.cat}` : 'My Deck';
             document.querySelectorAll('.cardCountUI').forEach(el => el.innerText = `${currentIdx + 1}/${list.length}`);
             document.getElementById('cardInner').classList.remove('flipped');
             word.revisit ? document.getElementById('revisitBtn').classList.add('revisit-active') : document.getElementById('revisitBtn').classList.remove('revisit-active');
@@ -204,7 +241,7 @@
         }
 
         function deleteCurrentWord() {
-            if(currentMode === 'a2') return alert("Protected list");
+            if(currentMode === 'a2') return alert("Cannot delete preset words");
             if(myDeck.length) {
                 myDeck.splice(currentIdx, 1);
                 localStorage.setItem('myWords', JSON.stringify(myDeck));
@@ -214,17 +251,14 @@
 
         function nextCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx + 1) % l.length; updateUI(); } }
         function prevCard() { const l = getActiveList(); if(l.length) { currentIdx = (currentIdx - 1 + l.length) % l.length; updateUI(); } }
-        function swapLanguages() { isNlToEn = !isNlToEn; document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; }
-        
-        const chapterData = { 1: "218836453", 2: "218836670", 3: "218836794", 4: "218837040", 5: "218837082", 6: "218837677", 7: "218837982", 8: "218838021", 9: "218838194", 10: "218838247", 11: "218838318", 12: "218838753", 13: "218838787", 14: "218839448", 15: "218840442", 16: "218840728", 17: "218840757", 18: "218841206" };
-        const grid = document.getElementById('chapterGrid');
-        for(let i=1; i<=18; i++) {
-            const btn = document.createElement('button');
-            btn.className = "h-9 rounded-lg text-[10px] font-bold bg-white border border-slate-100 hover:border-indigo-300 transition-all text-slate-500 shadow-sm";
-            btn.innerText = i; btn.onclick = () => window.open(`https://quizlet.com/${chapterData[i]}/flashcards`, '_blank');
-            grid.appendChild(btn);
+        function swapLanguages() { 
+            isNlToEn = !isNlToEn; 
+            document.getElementById('label-source').innerText = isNlToEn ? 'NL' : 'EN'; 
+            document.getElementById('label-target').innerText = isNlToEn ? 'EN' : 'NL'; 
         }
 
+        // Initialize
+        initCategories();
         updateUI();
     </script>
 </body>
